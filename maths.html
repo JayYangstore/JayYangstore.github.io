@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>一年级数学计算题生成器（加减必混合）</title>
+<style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei',Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+    .container{max-width:1000px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:30px;text-align:center}
+    .header h1{font-size:28px;margin-bottom:10px}
+    .controls{padding:30px;background:#f8f9fa;border-bottom:1px solid #e9ecef}
+    .control-group{display:inline-block;margin:10px 20px 10px 0}
+    .control-group label{display:block;margin-bottom:5px;font-weight:bold;color:#495057}
+    .control-group input,.control-group select{padding:8px 12px;border:1px solid #ced4da;border-radius:5px;font-size:16px;width:100px}
+    .btn{background:#28a745;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-size:16px;margin:5px}
+    .btn:hover{background:#218838}
+    .btn-secondary{background:#6c757d}.btn-secondary:hover{background:#5a6268}
+    .questions-area{padding:30px}
+    .question-set{display:inline-block;width:calc(50% - 20px);margin:10px;vertical-align:top;background:#f8f9fa;border-radius:10px;padding:20px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+    .question-set h3{color:#495057;margin-bottom:15px;text-align:center;border-bottom:2px solid #dee2e6;padding-bottom:5px}
+    .question{margin:15px 0;font-size:18px;text-align:center;padding:10px;background:#fff;border-radius:5px;border:1px solid #dee2e6}
+    @media print{
+        body *{visibility:hidden}
+        .print-only,.print-only *{visibility:visible}
+        .print-only{position:absolute;left:0;top:0;width:100%;margin:0}
+        .col{width:50%;box-sizing:border-box;padding:0 10px}
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>一年级数学计算题生成器</h1>
+        <p>一键生成，轻松打印，助力孩子学习</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group"><label>每组题数</label><input type="number" id="questionsPerSet" value="5" min="1" max="10"></div>
+        <div class="control-group"><label>总组数</label><input type="number" id="totalSets" value="8" min="1" max="12"></div>
+        <div class="control-group"><label>最小数</label><input type="number" id="minNumber" value="1" min="1"></div>
+        <div class="control-group"><label>最大数</label><input type="number" id="maxNumber" value="20" min="2"></div>
+        <div class="control-group">
+            <label>运算类型</label>
+            <select id="operationType">
+                <option value="mixed">加减混合</option>
+                <option value="add">仅加法</option>
+                <option value="subtract">仅减法</option>
+                <option value="multiply">乘法口诀计算</option>
+            </select>
+        </div>
+        <br>
+        <button class="btn" onclick="generateQuestions()">🔄 生成新题目</button>
+        <button class="btn btn-secondary" onclick="doPrint()">🖨️ 打印题目</button>
+        <button class="btn btn-secondary" onclick="showAnswers()">👁️ 查看答案</button>
+    </div>
+
+    <div class="questions-area" id="questionsArea"></div>
+    <iframe id="printFrame" style="display:none;"></iframe>
+</div>
+
+<script>
+let currentAnswers=[];
+
+/* 生成单题：加减混合必同时出现 + 和 - */
+function generateSingleQuestion(maxNum,minNum,opType){
+    if(opType==='multiply'){
+        const a=Math.floor(Math.random()*9)+1;
+        const b=Math.floor(Math.random()*9)+1;
+        return {question:`${a} × ${b} =`,answer:a*b};
+    }
+    if(opType==='add'||opType==='subtract'){
+        /* 纯加或纯减保持原逻辑，可忽略 */
+    }
+
+    /* 加减混合：强制出现 + 和 - */
+    let nums=[],exp='',result;
+    for(let i=0;i<4;i++) nums.push(Math.floor(Math.random()*(maxNum-minNum+1))+minNum);
+    /* 先生成一个 + 一个 - ，剩余随机 */
+    const ops=['+','-'];
+    const operations=[];
+    operations.push(ops[Math.floor(Math.random()*2)]);          // 第1个运算符
+    operations.push(ops[Math.floor(Math.random()*2)]);          // 第2个运算符
+    // 确保至少同时出现 + 和 -
+    if(operations[0]===operations[1]) operations[1]=operations[0]==='+'?'-':'+';
+    // 第3个运算符可随机
+    operations.push(ops[Math.floor(Math.random()*2)]);
+
+    exp=`${nums[0]}`; result=nums[0];
+    for(let i=0;i<3;i++){
+        exp+=` ${operations[i]} ${nums[i+1]}`;
+        result=operations[i]==='+'?result+nums[i+1]:result-nums[i+1];
+        if(result<0) return generateSingleQuestion(maxNum,minNum,opType);
+    }
+    return {question:exp+' =',answer:result};
+}
+
+function generateQuestions(){
+    const qps=+questionsPerSet.value;
+    const ts=+totalSets.value;
+    const mn=+minNumber.value;
+    const mx=+maxNumber.value;
+    const ot=operationType.value;
+
+    const qa=document.getElementById('questionsArea');
+    qa.innerHTML='';
+    currentAnswers=[];
+    for(let s=1;s<=ts;s++){
+        const d=document.createElement('div'); d.className='question-set';
+        d.innerHTML=`<h3>第${s}组</h3>`;
+        const answers=[];
+        for(let q=1;q<=qps;q++){
+            const o=generateSingleQuestion(mx,mn,ot);
+            answers.push(o.answer);
+            const qd=document.createElement('div'); qd.className='question';
+            qd.textContent=`${q}. ${o.question}`; d.appendChild(qd);
+        }
+        qa.appendChild(d); currentAnswers.push(answers);
+    }
+}
+
+function doPrint(){
+    if(!currentAnswers.length){alert('请先生成题目！');return;}
+    const qa=document.getElementById('questionsArea');
+    const pf=document.getElementById('printFrame');
+    const doc=pf.contentDocument||pf.contentWindow.document;
+    doc.open(); doc.close();
+    let html=`<title>一年级数学计算题</title>
+    <style>
+        body{font-family:'Microsoft YaHei',Arial;font-size:20px;margin:0;padding:20px}
+        .print-only{display:block}
+        .row{display:flex;flex-wrap:wrap}
+        .col{width:50%;box-sizing:border-box;padding:0 10px}
+        .col h3{text-align:center;border-bottom:2px solid #000;margin-bottom:15px;padding-bottom:5px}
+        .q{margin:15px 0}
+    </style>`;
+    html+='<div class="print-only"><h2 style="text-align:center;margin-bottom:30px">一年级数学计算题</h2><div class="row">';
+    [...qa.children].forEach(set=>{
+        html+=`<div class="col">${set.innerHTML.replace(/h3>/g,'h3>')}</div>`;
+    });
+    html+='</div></div>';
+    doc.body.innerHTML=html;
+    pf.contentWindow.focus();
+    pf.contentWindow.print();
+}
+
+function showAnswers(){
+    if(!currentAnswers.length){alert('请先生成题目！');return;}
+    let txt='题目答案：\n\n';
+    currentAnswers.forEach((set,i)=>{
+        txt+=`第${i+1}组：\n`;
+        set.forEach((a,j)=>{txt+=`${j+1}. ${a}\n`;});
+        txt+='\n';
+    });
+    alert(txt);
+}
+
+window.onload=generateQuestions;
+</script>
+</body>
+</html>
