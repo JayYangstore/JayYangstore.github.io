@@ -55,7 +55,8 @@ function R(n,ct,rt){
  var cw=document.createElement('div');cw.className='ch h';
  if(n[2]&&n[3]&&n[3].length>0){for(var i=0;i<n[3].length;i++)R(n[3][i],cw)}
  t.onclick=function(e){e.stopPropagation();if(!n[2]||!n[3]||n[3].length===0)return;cw.classList.toggle('h');t.textContent=cw.classList.contains('h')?'\u25b6':'\u25bc'}
- l.onclick=function(e){e.stopPropagation();if(_cp){var tt=document.getElementById('tt');tt.textContent=n[1];tt.classList.add('s');setTimeout(function(){tt.classList.remove('s')},2000)}else if(n[2]){t.onclick(e)}}
+ l.onclick=function(e){e.stopPropagation();if(_cp){var tt=document.getElementById('tt');try{navigator.clipboard.writeText(n[1]).then(function(){tt.textContent='\u2713 已复制：'+n[1]}).catch(function(){fallback(tt,n[1])})}else{fallback(tt,n[1])}tt.classList.add('s');setTimeout(function(){tt.classList.remove('s')},2000)}else if(n[2]){t.onclick(e)}}
+function fallback(tt,t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');tt.textContent='\u2713 已复制：'+t}catch(e){tt.textContent='\u26a0 复制失败，请手动选择: '+t}document.body.removeChild(ta)}
  if(rt){cw.classList.remove('h');if(t)t.textContent='\u25bc'}
  w.appendChild(r);w.appendChild(cw);ct.appendChild(w)
 }
