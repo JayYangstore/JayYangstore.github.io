@@ -243,7 +243,7 @@ function expandAll() {
   document.querySelectorAll('.toggle').forEach(el => { if (el.dataset.state !== undefined) el.textContent = '▼'; });
 }
 function collapseAll() {
-  const trees = document.querySelectorAll('.tree-container > .node');
+  const trees = document.querySelectorAll('.tree-inner > .node');
   trees.forEach(root => {
     const children = root.querySelectorAll(':scope > .children');
     children.forEach(c => c.classList.add('collapsed'));
@@ -262,7 +262,7 @@ function showToast(text) {
 }
 function applyFilter(q) {
   q = q.trim().toLowerCase();
-  const roots = document.querySelectorAll('.tree-container > .node');
+  const roots = document.querySelectorAll('.tree-inner > .node');
   if (!q) {
     document.querySelectorAll('.node').forEach(n => n.style.display = '');
     collapseAll();
@@ -274,7 +274,7 @@ function applyFilter(q) {
     node.style.display = match ? '' : 'none';
     if (match) {
       let p = node.parentElement;
-      while (p && !p.classList.contains('tree-container')) {
+      while (p && !p.classList.contains('tree-inner')) {
         if (p.classList.contains('children')) {
           p.classList.remove('collapsed');
           const toggle = p.previousElementSibling?.querySelector?.('.toggle');
