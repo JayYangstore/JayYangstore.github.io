@@ -243,14 +243,23 @@ function expandAll() {
   document.querySelectorAll('.toggle').forEach(el => { if (el.dataset.state !== undefined) el.textContent = '▼'; });
 }
 function collapseAll() {
-  const trees = document.querySelectorAll('.tree-inner > .node');
-  trees.forEach(root => {
-    const children = root.querySelectorAll(':scope > .children');
-    children.forEach(c => c.classList.add('collapsed'));
-    const rootToggle = root.querySelector(':scope > .node-row > .toggle');
-    if (rootToggle && rootToggle.dataset.state !== undefined) rootToggle.textContent = '▶';
+  // 折叠所有非 root 的子节点容器
+  document.querySelectorAll('.tree-inner .children').forEach(el => {
+    el.classList.add('collapsed');
+  });
+  // 同步所有 toggle 按钮显示为 ▶
+  document.querySelectorAll('.toggle').forEach(el => {
+    if (el.dataset.state !== undefined) el.textContent = '▶';
+  });
+  // 但 root (Desktop) 自己保持展开，让用户能看到顶层一级文件夹
+  const rootTrees = document.querySelectorAll('.tree-inner > .node');
+  rootTrees.forEach(root => {
     const rootChildren = root.querySelector(':scope > .children');
-    if (rootChildren) rootChildren.classList.remove('collapsed');
+    if (rootChildren) {
+      rootChildren.classList.remove('collapsed');
+      const rootToggle = root.querySelector(':scope > .node-row > .toggle');
+      if (rootToggle && rootToggle.dataset.state !== undefined) rootToggle.textContent = '▼';
+    }
   });
 }
 function showToast(text) {
