@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>记账 v6</title>
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%AE%B6%E5%BA%AD%E8%B4%A6%E6%9C%AC%22%2C%22short_name%22%3A%22%E8%AE%B0%E8%B4%A6%22%2C%22start_url%22%3A%22.%2F%22%2C%22scope%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230B0E13%22%2C%22theme_color%22%3A%22%230B0E13%22%2C%22orientation%22%3A%22portrait%22%7D">
+<link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%230B0E13%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2270%22%20font-size%3D%2256%22%20text-anchor%3D%22middle%22%20fill%3D%22%23E8B660%22%20font-family%3D%22-apple-system%22%20font-weight%3D%22700%22%3E%C2%A5%3C%2Ftext%3E%3C%2Fsvg%3E">
 <style>
   :root{
     --bg:#0B0E13; --bg-2:#12161F; --line:#1F2530;
@@ -1385,6 +1387,28 @@ editOk.addEventListener('click',()=>{
 /* ========== 启动 =========== */
 renderAll();checkSubmit();
 itemEl.focus();
+</script>
+
+<script>
+// === Service Worker 注册:浏览器缓存 HTML,弱网/二次访问秒开 ===
+if ('serviceWorker' in navigator) {
+  const swCode = `const CACHE='jizhang-v6';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('./')));self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r;}).catch(()=>caches.match(e.request).then(m=>m||caches.match('./'))))});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});
+}
+
+// === iOS Safari 加桌面提示(只弹 1 次) ===
+if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone && !localStorage.getItem('jizhang_a2hs_dismissed')) {
+  setTimeout(()=>{
+    const b=document.createElement('div');
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px;background:#E8B660;color:#0B0E13;font:14px -apple-system,sans-serif;display:flex;justify-content:space-between;align-items:center;';
+    b.innerHTML='<span>点 <b>分享 📤</b> → 添加到主屏幕,装个 App 图标更顺</span>';
+    const x=document.createElement('button');
+    x.textContent='知道了';
+    x.style.cssText='background:#0B0E13;color:#E8B660;border:0;padding:6px 14px;border-radius:6px;font-size:13px;margin-left:10px;';
+    x.onclick=()=>{localStorage.setItem('jizhang_a2hs_dismissed','1');b.remove();};
+    b.appendChild(x);document.body.appendChild(b);
+  },3000);
+}
 </script>
 
 </body>
