@@ -112,7 +112,7 @@
 
   .recent{background:var(--bg-2);border:1px solid var(--line);
     border-radius:18px;padding:16px;flex:1;overflow-y:auto;
-    max-height:30vh}
+    max-height:36vh}
   .recent h3{margin:0 0 10px;font-size:12px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--ink-3);font-weight:500;
     display:flex;justify-content:space-between;align-items:center}
@@ -120,11 +120,13 @@
   .recent h3 button{background:transparent;border:1px solid var(--line);
     color:var(--ink-2);padding:4px 10px;border-radius:8px;
     font-size:11px;cursor:pointer}
+  .recent h3 .open-records{background:var(--bg);border-color:var(--accent);
+    color:var(--accent);font-weight:600}
   .entry{display:flex;justify-content:space-between;align-items:center;
-    padding:14px 0;border-bottom:1px solid var(--line)}
+    padding:16px 0;border-bottom:1px solid var(--line)}
   .entry:last-child{border-bottom:none}
   .entry .left{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-  .entry .name{font-size:15px;color:var(--ink);
+  .entry .name{font-size:16px;color:var(--ink);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .entry .meta{font-size:11px;color:var(--ink-3)}
   .entry .pay-tag{display:inline-block;background:var(--bg);
@@ -141,6 +143,55 @@
 
   .empty{text-align:center;color:var(--ink-3);padding:30px 20px;
     font-size:13px}
+
+  /* ============ v7 二级页：明细全屏 ============ */
+  .view{display:none;flex-direction:column;flex:1;min-height:0}
+  .view.active{display:flex}
+  .view-home{/* 占满父容器，跟原来一致 */}
+  .view-records{padding-top:0}
+  .records-top{display:flex;align-items:center;gap:10px;
+    padding:8px 4px 14px}
+  .records-top .back{background:var(--bg-2);border:1px solid var(--line);
+    color:var(--ink);width:36px;height:36px;border-radius:10px;
+    font-size:16px;cursor:pointer;line-height:1;padding:0;flex-shrink:0}
+  .records-top .title{flex:1;font-size:18px;font-weight:600;
+    letter-spacing:-.3px}
+  .records-top .rmonth{display:flex;align-items:center;gap:6px;
+    color:var(--ink-2);font-size:13px}
+  .records-top .rmonth button{background:var(--bg-2);border:1px solid var(--line);
+    color:var(--ink-2);width:28px;height:28px;border-radius:8px;
+    font-size:16px;cursor:pointer;line-height:1}
+  .records-top .rmonth span{min-width:80px;text-align:center}
+  .records-toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .records-toolbar button{background:var(--bg-2);border:1px solid var(--line);
+    color:var(--ink);padding:10px 14px;border-radius:10px;font-size:13px;
+    cursor:pointer;flex:1;min-width:0;text-align:center;line-height:1.2}
+  .records-toolbar button.active{background:var(--accent);color:#1A1305;
+    border-color:var(--accent);font-weight:600}
+  .records-stats{background:var(--bg-2);border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;margin-bottom:10px;
+    display:flex;justify-content:space-between;font-size:13px;
+    color:var(--ink-2)}
+  .records-stats b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+  .records-list{flex:1;overflow-y:auto;background:var(--bg-2);
+    border:1px solid var(--line);border-radius:18px;padding:6px 14px;
+    -webkit-overflow-scrolling:touch}
+  .records-list .empty{padding:60px 20px}
+  .records-day-group{margin:8px 0 14px}
+  .records-day-group .day-label{font-size:11px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--ink-3);padding:10px 0 6px;
+    border-bottom:1px solid var(--line);margin-bottom:6px;
+    display:flex;justify-content:space-between;align-items:center;font-weight:500}
+  .records-day-group .day-label b{color:var(--ink-2);font-weight:600;
+    font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;
+    font-size:12px}
+  .records-day-group .entry{padding:18px 0}
+  .records-day-group .entry .name{font-size:17px;font-weight:500}
+  .records-day-group .entry .meta{font-size:12px}
+  .records-day-group .entry .price{font-size:18px;font-weight:700;
+    min-width:80px}
+  .records-day-group .entry .icon-btn{width:34px;height:34px;
+    font-size:17px;background:var(--bg);border:1px solid var(--line)}
 
   .toast{position:fixed;top:max(env(safe-area-inset-top),20px);left:50%;
     transform:translateX(-50%) translateY(-100px);
@@ -237,6 +288,8 @@
 </head>
 <body>
 
+<div class="view view-home active">
+
 <header>
   <h1>💰 记账</h1>
   <div class="month">
@@ -320,11 +373,41 @@
     <span id="recentTitle">本月记录</span>
     <div class="actions">
       <button id="filterBtn">筛选</button>
+      <button id="openRecords" class="open-records">查看全部 ›</button>
       <button id="exportCsv">导出</button>
     </div>
   </h3>
   <div id="filterBar" style="display:none"></div>
   <div id="entries"></div>
+</div>
+
+</div><!-- /view-home -->
+
+<!-- ============ v7 二级页：明细全屏 ============ -->
+<div class="view view-records" id="viewRecords">
+  <div class="records-top">
+    <button class="back" id="recordsBack" type="button">‹</button>
+    <div class="title">明细</div>
+    <div class="rmonth">
+      <button id="prevMR" type="button">‹</button>
+      <span id="monthLabelR"></span>
+      <button id="nextMR" type="button">›</button>
+    </div>
+  </div>
+
+  <div class="records-toolbar" id="recordsToolbar">
+    <button data-range="month" class="active">本月</button>
+    <button data-range="all">全部</button>
+    <button data-range="last7">近7天</button>
+    <button id="recordsFilterBtn">筛选</button>
+  </div>
+
+  <div class="records-stats" id="recordsStats">
+    <span>合计 <b id="recordsSum">¥0</b></span>
+    <span><b id="recordsCount">0</b> 笔</span>
+  </div>
+
+  <div class="records-list" id="recordsList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -938,6 +1021,142 @@ $('prevM').addEventListener('click',()=>{
 $('nextM').addEventListener('click',()=>{
   let m=viewYM.m+1,y=viewYM.y;if(m>11){m=0;y++;}setViewYM(y,m);
 });
+
+/* ========== v7 二级页：明细全屏 =========== */
+const viewHomeEl=document.querySelector('.view-home');
+const viewRecordsEl=document.querySelector('.view-records');
+const recordsListEl=$('recordsList');
+const recordsSumEl=$('recordsSum');
+const recordsCountEl=$('recordsCount');
+const monthLabelR=$('monthLabelR');
+let recordsRange = 'month'; // month | all | last7
+
+function goRecords(){
+  viewHomeEl.classList.remove('active');
+  viewRecordsEl.classList.add('active');
+  // 同步明细页的月份标签
+  monthLabelR.textContent = monthEl.textContent;
+  renderRecords();
+  setTimeout(()=>recordsListEl.scrollTop=0,0);
+}
+function goHome(){
+  viewRecordsEl.classList.remove('active');
+  viewHomeEl.classList.add('active');
+}
+$('openRecords').addEventListener('click',goRecords);
+$('recordsBack').addEventListener('click',goHome);
+$('prevMR').addEventListener('click',()=>{
+  let m=viewYM.m-1,y=viewYM.y;if(m<0){m=11;y--;}setViewYM(y,m);
+  monthLabelR.textContent = monthEl.textContent;
+  renderRecords();
+});
+$('nextMR').addEventListener('click',()=>{
+  let m=viewYM.m+1,y=viewYM.y;if(m>11){m=0;y++;}setViewYM(y,m);
+  monthLabelR.textContent = monthEl.textContent;
+  renderRecords();
+});
+
+// 时间范围切换
+document.querySelectorAll('#recordsToolbar button[data-range]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#recordsToolbar button[data-range]')
+      .forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    recordsRange = b.dataset.range;
+    renderRecords();
+  });
+});
+
+// 复用筛选弹层
+$('recordsFilterBtn').addEventListener('click',()=>{
+  openFilter();
+  // 筛选后跳明细页时也要刷新
+  setTimeout(()=>{
+    const applyBtn=$('filterApply');
+    if(applyBtn){
+      const old = applyBtn.onclick;
+      applyBtn.addEventListener('click',()=>{
+        renderRecords();
+      },{once:true});
+    }
+  },0);
+});
+
+function renderRecords(){
+  // 数据源
+  let arr;
+  const now = new Date();
+  if(recordsRange==='all'){
+    arr = applyFilter(loadEntries());
+  } else if(recordsRange==='last7'){
+    const cutoff = now.getTime() - 7*24*3600*1000;
+    arr = applyFilter(loadEntries()).filter(e=>e.ts>=cutoff);
+  } else {
+    arr = applyFilter(monthEntries());
+  }
+  arr = arr.slice().sort((a,b)=>b.ts-a.ts);
+
+  // 顶部合计
+  const total = arr.reduce((s,e)=>s+Number(e.amount||0),0);
+  recordsSumEl.textContent = '¥'+total.toFixed(2);
+  recordsCountEl.textContent = arr.length;
+
+  if(!arr.length){
+    recordsListEl.innerHTML = `<div class="empty">本月还没记录，先在首页加一笔 ↓</div>`;
+    return;
+  }
+
+  // 按天分组
+  const groups = {};
+  arr.forEach(e=>{
+    const d=new Date(e.ts);
+    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    (groups[key]=groups[key]||[]).push(e);
+  });
+  // 渲染每组
+  recordsListEl.innerHTML = Object.entries(groups).map(([key, items])=>{
+    const [y,mo,da]=key.split('-').map(Number);
+    const dt = new Date(y,mo-1,da);
+    const isToday = dt.toDateString()===new Date().toDateString();
+    const isYesterday = dt.toDateString()===
+      new Date(now.getTime()-86400000).toDateString();
+    let label;
+    if(isToday) label='今天';
+    else if(isYesterday) label='昨天';
+    else label = `${mo}月${da}日 · ${'日一二三四五六'[dt.getDay()]}`;
+    const dayTotal = items.reduce((s,e)=>s+Number(e.amount||0),0);
+    return `<div class="records-day-group">
+      <div class="day-label"><span>${label}</span><b>¥${dayTotal.toFixed(2)}</b></div>
+      ${items.map(e=>{
+        const cat = CATS.find(c=>c.id===e.cat);
+        const payTag = e.pay ? `<span class="pay-tag">${escapeHtml(e.pay)}</span>` : '';
+        return `<div class="entry" data-id="${e.id}">
+          <div class="left">
+            <div class="name">${cat?cat.icon:''} ${escapeHtml(e.item)}${payTag}</div>
+            <div class="meta">${cat?cat.id:''} · ${fmtDate(e.ts)}</div>
+          </div>
+          <div class="right">
+            <div class="price">¥${Number(e.amount).toFixed(2)}</div>
+            <button class="icon-btn act-edit" aria-label="编辑">✎</button>
+            <button class="icon-btn act-del" aria-label="删除">×</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  // 绑定删除/编辑（跟首页同套逻辑）
+  recordsListEl.querySelectorAll('.act-del').forEach(b=>{
+    b.addEventListener('click',e=>{
+      const id=e.target.closest('.entry').dataset.id;
+      saveEntries(loadEntries().filter(x=>x.id!==id));
+      renderAll();renderRecords();toast('已删除');
+    });
+  });
+  recordsListEl.querySelectorAll('.act-edit').forEach(b=>{
+    b.addEventListener('click',e=>openEdit(e.target.closest('.entry').dataset.id));
+  });
+}
 
 /* ========== CSV 导出 =========== */
 function toCSV(entries){
