@@ -747,17 +747,16 @@ function extractAmount(text){
   return nums[nums.length-1] || 0;
 }
 
-// 从文本中移除金额+分类关键词+支付关键词，得到纯备注
+// 从文本中移除金额+支付关键词，得到纯备注（v8 修复：不再删分类关键词）
+// 原因：早餐/午餐/晚餐/打车/房贷 等分类关键词往往就是用户想保留的项目名
 function stripAll(text){
   if(!text) return '';
   let r = text;
   // 去金额
   r = r.replace(/\d+(?:\.\d+)?\s*(?:元|块|毛|圆|¥|￥)?/g,'');
-  // 收集所有关键词（按长度从长到短）
+  // 只收集支付关键词（按长度从长到短）
   const allKw = [];
   for(const [pay,kws] of Object.entries(PAYKW))
-    for(const kw of kws) allKw.push(kw);
-  for(const [cat,kws] of Object.entries(KEYWORDS))
     for(const kw of kws) allKw.push(kw);
   allKw.sort((a,b)=>b.length-a.length);
   // 去重：每个关键词只删一次（避免破坏）
