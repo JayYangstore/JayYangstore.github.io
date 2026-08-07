@@ -1089,11 +1089,13 @@ function renderRecords(){
     arr = applyFilter(loadEntries());
   } else if(recordsRange==='last7'){
     const cutoff = now.getTime() - 7*24*3600*1000;
-    arr = applyFilter(loadEntries()).filter(e=>e.ts>=cutoff);
+    arr = applyFilter(loadEntries())
+      .filter(e=>new Date(e.ts).getTime() >= cutoff);
   } else {
     arr = applyFilter(monthEntries());
   }
-  arr = arr.slice().sort((a,b)=>b.ts-a.ts);
+  // v9 修复：e.ts 是 ISO 字符串，必须转 Date 再比较/排序
+  arr = arr.slice().sort((a,b)=>new Date(b.ts).getTime()-new Date(a.ts).getTime());
 
   // 顶部合计
   const total = arr.reduce((s,e)=>s+Number(e.amount||0),0);
