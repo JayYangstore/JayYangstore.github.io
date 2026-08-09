@@ -565,6 +565,11 @@
 <input type="file" id="fileInput" accept=".json" style="display:none">
 
 <script>
+/* ========== v12 多账号基础设施(必须先于任何 K() 调用) =========== */
+let CURRENT_USER = null;
+const USERS_KEY = 'family-ledger-v6-users';
+function K(base){ return CURRENT_USER ? `family-ledger-v6-${CURRENT_USER}-${base}` : null; }
+
 /* ========== 分类配置 =========== */
 const CAT_KEY   = () => K('cats');
 const KW_KEY    = () => K('keywords');
@@ -712,10 +717,6 @@ function migrateLegacyDataIfNeeded(username) {
 }
 
 /* ========== 记录存储 =========== */
-/* v12 (08-09):多账号 namespace,每个用户的账本独立存储在 family-ledger-v6-{username}-* */
-let CURRENT_USER = null;
-const USERS_KEY = 'family-ledger-v6-users';
-function K(base){ return CURRENT_USER ? `family-ledger-v6-${CURRENT_USER}-${base}` : null; }
 const STORE_KEY = () => K('entries');
 /* v10 安全网 (08-09):拦截"误清空" + lastKnownGood 兜底 + parse 失败告警 */
 const LKG_KEY = () => K('lastKnownGood');
