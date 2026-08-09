@@ -864,11 +864,15 @@ function updateAutoCat(){
 }
 
 /* ========== 渲染 =========== */
+/* v11 fix(08-09):monthEntries 显式按 ts 升序,否则 renderEntries 的 .reverse() 会因 localStorage 写入顺序错乱 */
 function monthEntries(){
-  return loadEntries().filter(e=>{
-    const d=new Date(e.ts);
-    return d.getFullYear()===viewYM.y && d.getMonth()===viewYM.m;
-  });
+  return loadEntries()
+    .filter(e=>{
+      const d=new Date(e.ts);
+      return d.getFullYear()===viewYM.y && d.getMonth()===viewYM.m;
+    })
+    .slice()
+    .sort((a,b)=>new Date(a.ts).getTime()-new Date(b.ts).getTime());
 }
 function renderBudget(){
   const income = getBudget(viewYM.y, viewYM.m);
