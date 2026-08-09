@@ -554,10 +554,10 @@
 
 <script>
 /* ========== 分类配置 =========== */
-const CAT_KEY = 'family-ledger-v6-cats';
-const KW_KEY   = 'family-ledger-v6-keywords';
-const PAY_KEY  = 'family-ledger-v6-pays';
-const PAYKW_KEY = 'family-ledger-v6-paykeywords';
+const CAT_KEY   = () => K('cats');
+const KW_KEY    = () => K('keywords');
+const PAY_KEY   = () => K('pays');
+const PAYKW_KEY = () => K('paykeywords');
 
 const DEFAULT_CATS = [
   {id:'固定住房', icon:'🏠'},
@@ -616,10 +616,78 @@ function saveKw(){localStorage.setItem(KW_KEY, JSON.stringify(KEYWORDS))}
 function savePays(){localStorage.setItem(PAY_KEY, JSON.stringify(PAYS))}
 function savePayKw(){localStorage.setItem(PAYKW_KEY, JSON.stringify(PAYKW))}
 
+
+/* ========== v12 多账号认证 (08-09) ========== */
+async function hashPassword(pwd) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function registerUser(username, password) {
+  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+  if(users[username]) throw new Error('用户名已存在');
+  const u = (username||'').trim();
+  if(!u || u.length < 2) throw new Error('用户名至少 2 个字');
+  if(!password || password.length < 4) throw new Error('密码至少 4 位');
+  users[u] = { passwordHash: await hashPassword(password), createdAt: Date.now() };
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+async function loginUser(username, password) {
+  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+  const u = (username||'').trim();
+  if(!users[u]) throw new Error('用户不存在,请先注册');
+  const hash = await hashPassword(password);
+  if(users[u].passwordHash !== hash) throw new Error('密码错误');
+  CURRENT_USER = u;
+  localStorage.setItem('family-ledger-v6-currentUser', u);
+  migrateLegacyDataIfNeeded(u);
+  return true;
+}
+
+function logoutUser() {
+  CURRENT_USER = null;
+  localStorage.removeItem('family-ledger-v6-currentUser');
+  // 清内存中的全局状态(避免 A 登后切到 B 还看到 A 的数据)
+  try{ CATS = loadJSON(CAT_KEY(), DEFAULT_CATS); }catch(e){ CATS = DEFAULT_CATS; }
+  try{ KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW); }catch(e){ KEYWORDS = DEFAULT_KW; }
+  try{ PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS); }catch(e){ PAYS = DEFAULT_PAYS; }
+  try{ PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW); }catch(e){ PAYKW = DEFAULT_PAYKW; }
+  try{ filter = loadJSON(FILTER_KEY(), null); }catch(e){ filter = null; }
+}
+
+function migrateLegacyDataIfNeeded(username) {
+  /* v11 老账本 key: family-ledger-v6 / -cats / -keywords / -pays / -paykeywords
+     v12 新账本 key: family-ledger-v6-{username}-entries / -cats / ...
+     如果老 key 存在 && 新 namespace 没数据 → 迁移过来 */
+  const oldMain = localStorage.getItem('family-ledger-v6');
+  const newMain = localStorage.getItem(K('entries'));
+  if(oldMain && !newMain){
+    const map = [
+      ['entries', 'family-ledger-v6'],
+      ['cats', 'family-ledger-v6-cats'],
+      ['keywords', 'family-ledger-v6-keywords'],
+      ['pays', 'family-ledger-v6-pays'],
+      ['paykeywords', 'family-ledger-v6-paykeywords'],
+      ['budgets', 'family-ledger-v6-budgets'],
+    ];
+    for(const [base, oldKey] of map){
+      const v = localStorage.getItem(oldKey);
+      if(v) localStorage.setItem(K(base), v);
+      localStorage.removeItem(oldKey);
+    }
+    try{ console.log('[jizhang] 已把旧账本迁移到 '+username+' 名下'); }catch(e){}
+  }
+}
+
 /* ========== 记录存储 =========== */
-const STORE_KEY = 'family-ledger-v6';
+/* v12 (08-09):多账号 namespace,每个用户的账本独立存储在 family-ledger-v6-{username}-* */
+let CURRENT_USER = null;
+const USERS_KEY = 'family-ledger-v6-users';
+function K(base){ return CURRENT_USER ? `family-ledger-v6-${CURRENT_USER}-${base}` : null; }
+const STORE_KEY = () => K('entries');
 /* v10 安全网 (08-09):拦截"误清空" + lastKnownGood 兜底 + parse 失败告警 */
-const LKG_KEY = 'family-ledger-v6-lastKnownGood';
+const LKG_KEY = () => K('lastKnownGood');
 function loadEntries(){
   const raw = localStorage.getItem(STORE_KEY);
   if(raw === null || raw === ''){
@@ -637,7 +705,7 @@ function loadEntries(){
         }
       }catch(e){}
     }
-    console.warn('[jizhang] family-ledger-v6 读取为空,可能是浏览器问题。');
+    console.warn('[jizhang] 主账本('+STORE_KEY()+') 读取为空,可能是浏览器问题或当前账号未登录。');
     return [];
   }
   try{ return JSON.parse(raw)||[] }
@@ -672,7 +740,7 @@ function saveEntries(arr){
 function genId(){return Date.now()+'-'+Math.random().toString(36).slice(2,8)}
 
 /* ========== 月份 =========== */
-const MONTH_KEY = 'family-ledger-v6-currentMonth';
+const MONTH_KEY = () => K('currentMonth');
 function currentYM(){const d=new Date();return {y:d.getFullYear(),m:d.getMonth()}}
 let viewYM = (()=>{
   try{const v=JSON.parse(localStorage.getItem(MONTH_KEY));if(v&&typeof v.y==='number')return v}
@@ -682,7 +750,7 @@ let viewYM = (()=>{
 function setViewYM(y,m){viewYM={y,m};localStorage.setItem(MONTH_KEY,JSON.stringify(viewYM));renderAll()}
 
 /* ========== 筛选 =========== */
-const FILTER_KEY = 'family-ledger-v6-filter';
+const FILTER_KEY = () => K('filter');
 let filter = (()=>{
   try{const v=JSON.parse(localStorage.getItem(FILTER_KEY));if(v)return v}catch(e){}
   return null;  // null = 无筛选
@@ -729,7 +797,7 @@ function filterSummary(){
 }
 
 /* ========== 工资 =========== */
-const BUDGET_KEY = 'family-ledger-v6-budgets';
+const BUDGET_KEY = () => K('budgets');
 function getBudget(y,m){
   try{
     const b = JSON.parse(localStorage.getItem(BUDGET_KEY)) || {};
@@ -1058,8 +1126,16 @@ submitEl.addEventListener('click',()=>{
   itemEl.value='';
   _lastText = '';
   _lastAmount = '';
-  renderAll();checkSubmit();
-  itemEl.focus();
+  /* v12:启动时检查登录态 */
+(function(){
+  const savedUser = localStorage.getItem('family-ledger-v6-currentUser');
+  if(savedUser){
+    CURRENT_USER = savedUser;
+    renderAll(); checkSubmit(); itemEl.focus();
+  } else {
+    showLoginModal();
+  }
+})();
   toast(`✓ ${itemName} ¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
 });
 
@@ -1681,6 +1757,97 @@ if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone
     b.appendChild(x);document.body.appendChild(b);
   },3000);
 }
+</script>
+
+
+<!-- v12:登录页 modal -->
+<div class="edit-modal" id="loginModal">
+  <div class="edit-card" style="max-width:380px">
+    <h3 id="loginTitle" style="text-align:center">💰 家庭记账 · 登录</h3>
+    <p style="color:var(--ink-3);font-size:12px;margin:0 0 16px;text-align:center">每人独立账号,数据完全隔离</p>
+
+    <label style="font-size:13px">用户名</label>
+    <input id="loginUser" type="text" placeholder="例如:jay / xiaoxiao" autocomplete="username"
+      style="width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin-top:4px;margin-bottom:12px">
+
+    <label style="font-size:13px">密码(至少 4 位)</label>
+    <input id="loginPwd" type="password" placeholder="••••••" autocomplete="current-password"
+      style="width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin-top:4px;margin-bottom:12px">
+
+    <div id="loginErr" style="color:#E06C6C;font-size:13px;margin-bottom:8px;display:none"></div>
+
+    <button class="ok" id="loginOk" type="button" style="width:100%;padding:12px;margin-top:8px">登录</button>
+    <button class="cancel" id="loginToggle" type="button" style="width:100%;padding:12px;margin-top:8px">还没账号?点我注册</button>
+  </div>
+</div>
+
+<script>
+/* v12:登录页交互 */
+let _loginMode = 'login';
+async function showLoginModal(){
+  $('loginModal').classList.add('open');
+  $('loginUser').value = '';
+  $('loginPwd').value = '';
+  $('loginErr').style.display = 'none';
+  _loginMode = 'login';
+  $('loginTitle').textContent = '💰 家庭记账 · 登录';
+  $('loginOk').textContent = '登录';
+  $('loginToggle').textContent = '还没账号?点我注册';
+  setTimeout(()=>$('loginUser').focus(), 100);
+}
+
+function setLoginErr(msg){
+  const el = $('loginErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+$('loginToggle').addEventListener('click', ()=>{
+  if(_loginMode === 'login'){
+    _loginMode = 'register';
+    $('loginTitle').textContent = '💰 家庭记账 · 注册';
+    $('loginOk').textContent = '注册并登录';
+    $('loginToggle').textContent = '已有账号?点我登录';
+  } else {
+    _loginMode = 'login';
+    $('loginTitle').textContent = '💰 家庭记账 · 登录';
+    $('loginOk').textContent = '登录';
+    $('loginToggle').textContent = '还没账号?点我注册';
+  }
+  $('loginErr').style.display = 'none';
+});
+
+$('loginOk').addEventListener('click', async ()=>{
+  const u = $('loginUser').value.trim();
+  const p = $('loginPwd').value;
+  if(!u || !p){ setLoginErr('请输入用户名和密码'); return; }
+  $('loginOk').textContent = '处理中...';
+  $('loginOk').disabled = true;
+  try{
+    if(_loginMode === 'register'){
+      await registerUser(u, p);
+    }
+    await loginUser(u, p);
+    $('loginModal').classList.remove('open');
+    // 加载该用户数据
+    CATS = loadJSON(CAT_KEY(), DEFAULT_CATS);
+    KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW);
+    PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS);
+    PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW);
+    try{ filter = loadJSON(FILTER_KEY(), null); }catch(e){ filter = null; }
+    renderAll(); checkSubmit(); itemEl.focus();
+    toast('✓ 欢迎,'+u);
+  }catch(e){
+    setLoginErr(e.message || '操作失败');
+  }finally{
+    $('loginOk').disabled = false;
+    $('loginOk').textContent = _loginMode==='register' ? '注册并登录' : '登录';
+  }
+});
+
+/* Enter 键提交 */
+$('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginPwd').focus(); });
+$('loginPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginOk').click(); });
 </script>
 
 </body>
