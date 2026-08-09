@@ -619,14 +619,14 @@ function loadJSON(k, d){
   try{const v=JSON.parse(localStorage.getItem(k));if(v)return v}catch(e){}
   return JSON.parse(JSON.stringify(d));
 }
-let CATS = loadJSON(CAT_KEY, DEFAULT_CATS);
-let KEYWORDS = loadJSON(KW_KEY, DEFAULT_KW);
-let PAYS = loadJSON(PAY_KEY, DEFAULT_PAYS);
-let PAYKW = loadJSON(PAYKW_KEY, DEFAULT_PAYKW);
-function saveCats(){localStorage.setItem(CAT_KEY, JSON.stringify(CATS))}
-function saveKw(){localStorage.setItem(KW_KEY, JSON.stringify(KEYWORDS))}
-function savePays(){localStorage.setItem(PAY_KEY, JSON.stringify(PAYS))}
-function savePayKw(){localStorage.setItem(PAYKW_KEY, JSON.stringify(PAYKW))}
+let CATS = loadJSON(CAT_KEY(), DEFAULT_CATS);
+let KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW);
+let PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS);
+let PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW);
+function saveCats(){localStorage.setItem(CAT_KEY(), JSON.stringify(CATS))}
+function saveKw(){localStorage.setItem(KW_KEY(), JSON.stringify(KEYWORDS))}
+function savePays(){localStorage.setItem(PAY_KEY(), JSON.stringify(PAYS))}
+function savePayKw(){localStorage.setItem(PAYKW_KEY(), JSON.stringify(PAYKW))}
 
 
 /* ========== v12 多账号认证 (08-09) ========== */
@@ -720,10 +720,10 @@ const STORE_KEY = () => K('entries');
 /* v10 安全网 (08-09):拦截"误清空" + lastKnownGood 兜底 + parse 失败告警 */
 const LKG_KEY = () => K('lastKnownGood');
 function loadEntries(){
-  const raw = localStorage.getItem(STORE_KEY);
+  const raw = localStorage.getItem(STORE_KEY());
   if(raw === null || raw === ''){
     /* 浏览器可能把 localStorage 作废了 — 先看 lastKnownGood 快照 */
-    const lkg = localStorage.getItem(LKG_KEY);
+    const lkg = localStorage.getItem(LKG_KEY());
     if(lkg){
       try{
         const arr = JSON.parse(lkg);
@@ -731,7 +731,7 @@ function loadEntries(){
           console.warn('[jizhang] localStorage 主账本为空,但 lastKnownGood 有 '+arr.length+' 条,已自动恢复。请尽快导出 JSON 备份。');
           try{ toast('⚠️ 检测到账本恢复('+arr.length+'条),请立刻导出备份'); }catch(e){}
           /* 把快照写回主账本 */
-          try{ localStorage.setItem(STORE_KEY, lkg); }catch(e){}
+          try{ localStorage.setItem(STORE_KEY(), lkg); }catch(e){}
           return arr;
         }
       }catch(e){}
@@ -753,7 +753,7 @@ function saveEntries(arr){
   }
   /* 关键拦截:saveEntries([]) 但当前有非空旧值 → 拒绝 */
   if(arr.length === 0){
-    const cur = localStorage.getItem(STORE_KEY);
+    const cur = localStorage.getItem(STORE_KEY());
     let curArr = [];
     try{ curArr = JSON.parse(cur)||[] }catch(e){}
     if(curArr.length > 0){
@@ -762,10 +762,10 @@ function saveEntries(arr){
       return;
     }
   }
-  localStorage.setItem(STORE_KEY, JSON.stringify(arr));
+  localStorage.setItem(STORE_KEY(), JSON.stringify(arr));
   /* 同步 lastKnownGood 快照(只在有数据时) */
   if(arr.length > 0){
-    try{ localStorage.setItem(LKG_KEY, JSON.stringify(arr)); }catch(e){}
+    try{ localStorage.setItem(LKG_KEY(), JSON.stringify(arr)); }catch(e){}
   }
 }
 function genId(){return Date.now()+'-'+Math.random().toString(36).slice(2,8)}
@@ -774,20 +774,20 @@ function genId(){return Date.now()+'-'+Math.random().toString(36).slice(2,8)}
 const MONTH_KEY = () => K('currentMonth');
 function currentYM(){const d=new Date();return {y:d.getFullYear(),m:d.getMonth()}}
 let viewYM = (()=>{
-  try{const v=JSON.parse(localStorage.getItem(MONTH_KEY));if(v&&typeof v.y==='number')return v}
+  try{const v=JSON.parse(localStorage.getItem(MONTH_KEY()));if(v&&typeof v.y==='number')return v}
   catch(e){}
   return currentYM();
 })();
-function setViewYM(y,m){viewYM={y,m};localStorage.setItem(MONTH_KEY,JSON.stringify(viewYM));renderAll()}
+function setViewYM(y,m){viewYM={y,m};localStorage.setItem(MONTH_KEY(),JSON.stringify(viewYM));renderAll()}
 
 /* ========== 筛选 =========== */
 const FILTER_KEY = () => K('filter');
 let filter = (()=>{
-  try{const v=JSON.parse(localStorage.getItem(FILTER_KEY));if(v)return v}catch(e){}
+  try{const v=JSON.parse(localStorage.getItem(FILTER_KEY()));if(v)return v}catch(e){}
   return null;  // null = 无筛选
 })();
-function saveFilter(){localStorage.setItem(FILTER_KEY, JSON.stringify(filter))}
-function clearFilter(){filter=null;localStorage.removeItem(FILTER_KEY)}
+function saveFilter(){localStorage.setItem(FILTER_KEY(), JSON.stringify(filter))}
+function clearFilter(){filter=null;localStorage.removeItem(FILTER_KEY())}
 
 function applyFilter(arr){
   if(!filter) return arr;
@@ -831,18 +831,18 @@ function filterSummary(){
 const BUDGET_KEY = () => K('budgets');
 function getBudget(y,m){
   try{
-    const b = JSON.parse(localStorage.getItem(BUDGET_KEY)) || {};
+    const b = JSON.parse(localStorage.getItem(BUDGET_KEY())) || {};
     const k = `${y}-${String(m+1).padStart(2,'0')}`;
     return b[k] || 0;
   }catch(e){return 0}
 }
 function setBudget(y,m,val){
   try{
-    const b = JSON.parse(localStorage.getItem(BUDGET_KEY)) || {};
+    const b = JSON.parse(localStorage.getItem(BUDGET_KEY())) || {};
     const k = `${y}-${String(m+1).padStart(2,'0')}`;
     if(val>0) b[k] = val;
     else delete b[k];
-    localStorage.setItem(BUDGET_KEY, JSON.stringify(b));
+    localStorage.setItem(BUDGET_KEY(), JSON.stringify(b));
   }catch(e){}
 }
 
