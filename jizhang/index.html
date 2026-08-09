@@ -1981,7 +1981,6 @@ function renderAdminPanel(){
     html += '密码以 SHA-256 哈希存储,管理员无法查看明文。<br>';
     html += '"迁移标记": <b>'+(localStorage.getItem('family-ledger-v6-migrated')||'(未迁移)')+'</b>';
     html += '</div>';
-  }
   
   $('adminBody').innerHTML = html;
   
@@ -1993,6 +1992,7 @@ function renderAdminPanel(){
       deleteUserAccount(uname);
     });
   });
+}
 
 function deleteUserAccount(username){
   /* 删账号 + 该账号所有数据 */
