@@ -1126,17 +1126,7 @@ submitEl.addEventListener('click',()=>{
   itemEl.value='';
   _lastText = '';
   _lastAmount = '';
-  /* v12:启动时检查登录态 */
-(function(){
-  const savedUser = localStorage.getItem('family-ledger-v6-currentUser');
-  if(savedUser){
-    CURRENT_USER = savedUser;
-    renderAll(); checkSubmit(); itemEl.focus();
-  } else {
-    showLoginModal();
-  }
-})();
-  toast(`✓ ${itemName} ¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
+    toast(`✓ ${itemName} ¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
 });
 
 /* ========== 月份切换 =========== */
@@ -1732,9 +1722,7 @@ editOk.addEventListener('click',()=>{
   saveEntries(arr);renderAll();closeEdit();toast('✓ 已保存');
 });
 
-/* ========== 启动 =========== */
-renderAll();checkSubmit();
-itemEl.focus();
+/* v12:启动代码已移到下面 loginModal 之后,确保 showLoginModal 函数先定义 */
 </script>
 
 <script>
@@ -1848,6 +1836,21 @@ $('loginOk').addEventListener('click', async ()=>{
 /* Enter 键提交 */
 $('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginPwd').focus(); });
 $('loginPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginOk').click(); });
+
+/* v12 启动检查(在 loginModal + showLoginModal 都定义完之后) */
+(function(){
+  const savedUser = localStorage.getItem('family-ledger-v6-currentUser');
+  if(savedUser){
+    CURRENT_USER = savedUser;
+    // 已登录用户直接进 PWA 主体
+    if(typeof renderAll === 'function'){
+      renderAll(); checkSubmit(); itemEl.focus();
+    }
+  } else {
+    // 未登录弹登录页
+    showLoginModal();
+  }
+})();
 </script>
 
 </body>
