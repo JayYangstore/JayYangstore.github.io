@@ -618,11 +618,57 @@ function savePayKw(){localStorage.setItem(PAYKW_KEY, JSON.stringify(PAYKW))}
 
 /* ========== 记录存储 =========== */
 const STORE_KEY = 'family-ledger-v6';
+/* v10 安全网 (08-09):拦截"误清空" + lastKnownGood 兜底 + parse 失败告警 */
+const LKG_KEY = 'family-ledger-v6-lastKnownGood';
 function loadEntries(){
-  try{return JSON.parse(localStorage.getItem(STORE_KEY))||[]}
-  catch(e){return []}
+  const raw = localStorage.getItem(STORE_KEY);
+  if(raw === null || raw === ''){
+    /* 浏览器可能把 localStorage 作废了 — 先看 lastKnownGood 快照 */
+    const lkg = localStorage.getItem(LKG_KEY);
+    if(lkg){
+      try{
+        const arr = JSON.parse(lkg);
+        if(Array.isArray(arr) && arr.length){
+          console.warn('[jizhang] localStorage 主账本为空,但 lastKnownGood 有 '+arr.length+' 条,已自动恢复。请尽快导出 JSON 备份。');
+          try{ toast('⚠️ 检测到账本恢复('+arr.length+'条),请立刻导出备份'); }catch(e){}
+          /* 把快照写回主账本 */
+          try{ localStorage.setItem(STORE_KEY, lkg); }catch(e){}
+          return arr;
+        }
+      }catch(e){}
+    }
+    console.warn('[jizhang] family-ledger-v6 读取为空,可能是浏览器问题。');
+    return [];
+  }
+  try{ return JSON.parse(raw)||[] }
+  catch(e){
+    console.error('[jizhang] JSON.parse 失败', e, 'raw length=', raw.length);
+    try{ toast('⚠️ 账本读取异常,请立刻导出 JSON 备份'); }catch(err){}
+    return [];
+  }
 }
-function saveEntries(arr){localStorage.setItem(STORE_KEY, JSON.stringify(arr))}
+function saveEntries(arr){
+  if(!Array.isArray(arr)){
+    console.error('[jizhang] saveEntries 收到非数组,拒绝写入', arr);
+    return;
+  }
+  /* 关键拦截:saveEntries([]) 但当前有非空旧值 → 拒绝 */
+  if(arr.length === 0){
+    const cur = localStorage.getItem(STORE_KEY);
+    let curArr = [];
+    try{ curArr = JSON.parse(cur)||[] }catch(e){}
+    if(curArr.length > 0){
+      console.warn('[jizhang] 拦截 saveEntries([]):当前已有 '+curArr.length+' 条,拒绝清空');
+      try{ toast('⚠️ 已拦截"误清空",当前账本有 '+curArr.length+' 条'); }catch(e){}
+      return;
+    }
+  }
+  localStorage.setItem(STORE_KEY, JSON.stringify(arr));
+  /* 同步 lastKnownGood 快照(只在有数据时) */
+  if(arr.length > 0){
+    try{ localStorage.setItem(LKG_KEY, JSON.stringify(arr)); }catch(e){}
+  }
+}
 function genId(){return Date.now()+'-'+Math.random().toString(36).slice(2,8)}
 
 /* ========== 月份 =========== */
@@ -1183,7 +1229,7 @@ function downloadCSV(fn,content){
 $('exportCsv').addEventListener('click',()=>{
   const arr=applyFilter(monthEntries());
   if(!arr.length){toast('当前筛选无记录');return}
-  const fn=`ledger-${viewYM.y}-${String(viewYM.m+1).padStart(2,'0')}.csv`;
+  const fn=`family-ledger-${viewYM.y}${String(viewYM.m+1).padStart(2,'0')}-v6.csv`;
   downloadCSV(fn,toCSV(arr));toast(`✓ ${fn}（${arr.length} 条）`);
 });
 
@@ -1324,13 +1370,14 @@ $('budgetOk').addEventListener('click',()=>{
 $('exportMonth').addEventListener('click',()=>{
   const arr=monthEntries();
   if(!arr.length){toast('本月没记录');return}
-  const fn=`ledger-${viewYM.y}-${String(viewYM.m+1).padStart(2,'0')}.csv`;
+  const fn=`family-ledger-${viewYM.y}${String(viewYM.m+1).padStart(2,'0')}-v6.csv`;
   downloadCSV(fn,toCSV(arr));closeSheet();toast('✓ 已导出');
 });
 $('exportAll').addEventListener('click',()=>{
   const arr=loadEntries();
   if(!arr.length){toast('还没记录');return}
-  downloadCSV(`ledger-all-${Date.now()}.csv`,toCSV(arr));
+  const _d=new Date();const _ds=_d.getFullYear()+String(_d.getMonth()+1).padStart(2,'0')+String(_d.getDate()).padStart(2,'0');
+  downloadCSV(`family-ledger-all-${_ds}-v6.csv`,toCSV(arr));
   closeSheet();toast(`✓ ${arr.length} 条`);
 });
 $('exportJson').addEventListener('click',()=>{
@@ -1339,7 +1386,8 @@ $('exportJson').addEventListener('click',()=>{
     entries:loadEntries()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`ledger-backup-${Date.now()}.json`;
+  const _d=new Date();const _ds=_d.getFullYear()+String(_d.getMonth()+1).padStart(2,'0')+String(_d.getDate()).padStart(2,'0');
+  const a=document.createElement('a');a.href=url;a.download=`family-ledger-${_ds}-v6.json`;
   document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},100);
   closeSheet();toast('✓ 备份已下载');
