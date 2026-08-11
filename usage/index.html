@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>用量看板</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f8fafc;
+    margin: 0;
+    padding: 24px;
+    color: #0f172a;
+  }
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 28px;
+  }
+  .meta { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+  }
+  .card.error { border-color: #fca5a5; background: #fef2f2; }
+  .card h2 { margin: 0 0 12px 0; font-size: 20px; }
+  .card h3 { margin: 16px 0 8px 0; font-size: 16px; color: #475569; }
+  .tag {
+    background: #e0e7ff;
+    color: #4338ca;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: 500;
+  }
+  .big { font-size: 36px; font-weight: 600; margin: 8px 0 4px 0; }
+  .muted { color: #64748b; font-size: 13px; margin: 4px 0; }
+  .small { font-size: 11px; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  .row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .submodel { padding-top: 16px; border-top: 1px dashed #e2e8f0; margin-top: 12px; }
+  .submodel:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+  .refresh-tip {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    color: #0c4a6e;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <h1>🤖 用量看板</h1>
+  <p class="meta">查询时间：2026-08-11 20:48:54</p>
+  <div class="grid">
+    
+    <div class="card">
+      <h2>DeepSeek <span class="tag">按量付费</span></h2>
+      <div class="big">CNY 101.05</div>
+      <p class="muted">账户余额（充值 101.05 + 赠送 0.00）</p>
+      <p class="muted">可用：✅ 是</p>
+    </div>
+    
+    <div class="card">
+      <h2>MiniMax <span class="tag">Token Plan 订阅</span></h2>
+      
+        <div class="submodel">
+          <h3>general</h3>
+          <div class="grid2">
+            <div>
+              <div class="row-between">
+                <strong>5 小时窗口</strong>
+                <span class="muted">正常 · 62% 剩余</span>
+              </div>
+              
+    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
+      <div style="background:#16a34a;height:100%;width:38.0%;transition:width .4s;"></div>
+    </div>
+              <p class="muted small">
+                08-11 20:00 → 08-12 00:00
+              </p>
+            </div>
+            <div>
+              <div class="row-between">
+                <strong>周窗口</strong>
+                <span class="muted">正常 · 72% 剩余</span>
+              </div>
+              
+    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
+      <div style="background:#16a34a;height:100%;width:28.0%;transition:width .4s;"></div>
+    </div>
+              <p class="muted small">
+                08-10 00:00 → 08-17 00:00
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="submodel">
+          <h3>video</h3>
+          <div class="grid2">
+            <div>
+              <div class="row-between">
+                <strong>5 小时窗口</strong>
+                <span class="muted">未使用/不可用 · 100% 剩余</span>
+              </div>
+              
+    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
+      <div style="background:#16a34a;height:100%;width:0.0%;transition:width .4s;"></div>
+    </div>
+              <p class="muted small">
+                08-11 00:00 → 08-12 00:00
+              </p>
+            </div>
+            <div>
+              <div class="row-between">
+                <strong>周窗口</strong>
+                <span class="muted">未使用/不可用 · 100% 剩余</span>
+              </div>
+              
+    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
+      <div style="background:#16a34a;height:100%;width:0.0%;transition:width .4s;"></div>
+    </div>
+              <p class="muted small">
+                08-10 00:00 → 08-17 00:00
+              </p>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <p class="refresh-tip">
+    💡 这个看板每次打开都会实时拉取最新数据。如需自动报表，加 cron 任务即可。
+  </p>
+</body>
+</html>
