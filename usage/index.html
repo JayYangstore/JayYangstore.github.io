@@ -7,52 +7,74 @@
 <style>
   * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "SF Pro", "Microsoft YaHei", sans-serif;
+    background: #0a0d12;
     margin: 0;
-    padding: 24px;
-    color: #0f172a;
+    padding: 48px 5%;
+    color: #e8edf5;
   }
-  h1 {
-    margin: 0 0 4px 0;
-    font-size: 28px;
+  h1 { margin: 0 0 6px 0; font-size: 32px; }
+  .meta { color: #7d8798; font-size: 15px; margin-bottom: 28px; }
+  .grid {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.8fr);
   }
-  .meta { color: #64748b; font-size: 14px; margin-bottom: 24px; }
-  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+  body > h1, body > .meta { max-width: 1160px; margin-left: auto; margin-right: auto; }
   .card {
-    background: white;
+    background: #151922;
+    border: 1px solid #29303d;
     border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid #e2e8f0;
+    padding: 30px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.33);
   }
-  .card.error { border-color: #fca5a5; background: #fef2f2; }
-  .card h2 { margin: 0 0 12px 0; font-size: 20px; }
-  .card h3 { margin: 16px 0 8px 0; font-size: 16px; color: #475569; }
+  .card.error { border-color: #7f1d1d; background: #1c1216; }
+  .card h2 { margin: 0 0 14px 0; font-size: 20px; }
+  .card h3 { margin: 0 0 12px 0; font-size: 18px; color: #c9d2df; }
   .tag {
-    background: #e0e7ff;
-    color: #4338ca;
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 4px;
+    background: #222b3a;
+    color: #9eacd0;
+    padding: 4px 10px;
+    border-radius: 6px;
     margin-left: 8px;
+    font-size: 12px;
     font-weight: 500;
   }
-  .big { font-size: 36px; font-weight: 600; margin: 8px 0 4px 0; }
-  .muted { color: #64748b; font-size: 13px; margin: 4px 0; }
-  .small { font-size: 11px; }
-  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
-  .row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .submodel { padding-top: 16px; border-top: 1px dashed #e2e8f0; margin-top: 12px; }
+  .big { font-size: 52px; font-weight: 700; margin: 44px 0 12px; letter-spacing: 0.5px; }
+  .muted { color: #8c98aa; font-size: 14px; margin: 6px 0; }
+  .small { font-size: 12px; }
+  .grid2 { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; }
+  .row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+  .row-between strong { font-size: 15px; }
+  .submodel { border-top: 1px solid #29303d; padding-top: 22px; margin-top: 22px; }
   .submodel:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
   .refresh-tip {
-    margin-top: 12px;
-    padding: 10px 14px;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 6px;
-    color: #0c4a6e;
-    font-size: 13px;
+    max-width: 1160px;
+    margin: 24px auto 0;
+    color: #8c98aa;
+    background: #11161f;
+    border: 1px solid #29303d;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  /* 手机竖屏: 单列 + 字号放大 */
+  @media (max-width: 767px) {
+    body { padding: 26px 16px; }
+    h1 { font-size: 28px; }
+    .meta { font-size: 14px; margin-bottom: 20px; }
+    .grid { grid-template-columns: 1fr; gap: 16px; }
+    .grid2 { grid-template-columns: 1fr; gap: 20px; }
+    .card { padding: 22px; }
+    .card h2 { font-size: 19px; }
+    .card h3 { font-size: 17px; }
+    .big { font-size: 46px; margin: 30px 0 10px; }
+    .muted { font-size: 14px; }
+    .small { font-size: 13px; }
+    .row-between strong { font-size: 15px; }
+    .refresh-tip { font-size: 13px; padding: 12px 14px; }
   }
 </style>
 </head>
@@ -80,8 +102,8 @@
                 <span class="muted">正常 · 62% 剩余</span>
               </div>
               
-    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
-      <div style="background:#16a34a;height:100%;width:38.0%;transition:width .4s;"></div>
+    <div style="background:#29303d;border-radius:4px;height:14px;overflow:hidden;width:100%;">
+      <div style="background:#34d399;height:100%;width:38.0%;transition:width .4s;"></div>
     </div>
               <p class="muted small">
                 08-11 20:00 → 08-12 00:00
@@ -93,8 +115,8 @@
                 <span class="muted">正常 · 72% 剩余</span>
               </div>
               
-    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
-      <div style="background:#16a34a;height:100%;width:28.0%;transition:width .4s;"></div>
+    <div style="background:#29303d;border-radius:4px;height:14px;overflow:hidden;width:100%;">
+      <div style="background:#34d399;height:100%;width:28.0%;transition:width .4s;"></div>
     </div>
               <p class="muted small">
                 08-10 00:00 → 08-17 00:00
@@ -111,8 +133,8 @@
                 <span class="muted">未使用/不可用 · 100% 剩余</span>
               </div>
               
-    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
-      <div style="background:#16a34a;height:100%;width:0.0%;transition:width .4s;"></div>
+    <div style="background:#29303d;border-radius:4px;height:14px;overflow:hidden;width:100%;">
+      <div style="background:#34d399;height:100%;width:0.0%;transition:width .4s;"></div>
     </div>
               <p class="muted small">
                 08-11 00:00 → 08-12 00:00
@@ -124,8 +146,8 @@
                 <span class="muted">未使用/不可用 · 100% 剩余</span>
               </div>
               
-    <div style="background:#e5e7eb;border-radius:6px;height:24px;overflow:hidden;width:100%;">
-      <div style="background:#16a34a;height:100%;width:0.0%;transition:width .4s;"></div>
+    <div style="background:#29303d;border-radius:4px;height:14px;overflow:hidden;width:100%;">
+      <div style="background:#34d399;height:100%;width:0.0%;transition:width .4s;"></div>
     </div>
               <p class="muted small">
                 08-10 00:00 → 08-17 00:00
