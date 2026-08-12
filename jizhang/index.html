@@ -1002,13 +1002,17 @@ function monthEntries(){
     .slice()
     .sort((a,b)=>new Date(a.ts).getTime()-new Date(b.ts).getTime());
 }
+/* v13.1:金额千分符格式化(汇总金额用,避免 12345.67 难读) */
+function fmtMoney(v, dec=2){
+  return Number(v||0).toLocaleString('zh-CN',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
 function renderBudget(){
   const income = getBudget(viewYM.y, viewYM.m);
   const allEntries = monthEntries();
   const spent = allEntries.reduce((s,e)=>s+Number(e.amount||0),0);
   const remain = income - spent;
-  budgetIncome.textContent = income ? '¥'+income.toLocaleString() : '未设置';
-  budgetSpent.textContent = '¥'+spent.toFixed(2);
+  budgetIncome.textContent = income ? '¥'+fmtMoney(income,0) : '未设置';
+  budgetSpent.textContent = '¥'+fmtMoney(spent);
   if(!income){
     budgetRemain.textContent='¥—';
     budgetSub.textContent='点击右上"设置"输入工资';
@@ -1022,7 +1026,7 @@ function renderBudget(){
   budgetFill.style.width = pct+'%';
   budgetSub.textContent = remain>=0
     ? `剩余（已花 ${pct.toFixed(0)}%，含转账）`
-    : `超支 ${Math.abs(remain).toFixed(2)} 元（含转账）`;
+    : `超支 ${fmtMoney(Math.abs(remain))} 元（含转账）`;
 }
 function renderSummary(){
   /* v13:首页 本月/笔数/日均 3卡已移到明细页,这里只更新月份标签 + 筛选状态条 */
