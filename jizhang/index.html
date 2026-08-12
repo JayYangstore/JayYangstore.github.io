@@ -1011,7 +1011,7 @@ function renderBudget(){
   const allEntries = monthEntries();
   const spent = allEntries.reduce((s,e)=>s+Number(e.amount||0),0);
   const remain = income - spent;
-  budgetIncome.textContent = income ? '¥'+fmtMoney(income,0) : '未设置';
+  budgetIncome.textContent = income ? '¥'+fmtMoney(income) : '未设置';
   budgetSpent.textContent = '¥'+fmtMoney(spent);
   if(!income){
     budgetRemain.textContent='¥—';
