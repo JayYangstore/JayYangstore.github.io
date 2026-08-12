@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0B0E13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>记账 v6</title>
+<title>记账 v13</title>
 <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%AE%B6%E5%BA%AD%E8%B4%A6%E6%9C%AC%22%2C%22short_name%22%3A%22%E8%AE%B0%E8%B4%A6%22%2C%22start_url%22%3A%22.%2F%22%2C%22scope%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230B0E13%22%2C%22theme_color%22%3A%22%230B0E13%22%2C%22orientation%22%3A%22portrait%22%7D">
 <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%230B0E13%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2270%22%20font-size%3D%2256%22%20text-anchor%3D%22middle%22%20fill%3D%22%23E8B660%22%20font-family%3D%22-apple-system%22%20font-weight%3D%22700%22%3E%C2%A5%3C%2Ftext%3E%3C%2Fsvg%3E">
 <style>
@@ -109,6 +109,12 @@
     font-weight:600;cursor:pointer;margin-bottom:14px;transition:all .15s}
   .submit-btn:active{background:var(--accent-2);transform:scale(.99)}
   .submit-btn:disabled{opacity:.4}
+
+  .open-records-btn{width:100%;padding:18px;background:var(--bg-2);
+    border:1px solid var(--accent);border-radius:16px;color:var(--accent);
+    font-size:16px;font-weight:600;cursor:pointer;margin-bottom:14px;
+    transition:all .15s}
+  .open-records-btn:active{transform:scale(.99);background:rgba(232,182,96,.1)}
 
   .recent{background:var(--bg-2);border:1px solid var(--line);
     border-radius:18px;padding:16px;flex:1;overflow-y:auto;
@@ -330,21 +336,6 @@
   <div id="payList"></div>
 </div>
 
-<div class="summary-bar">
-  <div class="summary-cell">
-    <div class="l">本月</div>
-    <div class="v" id="sumTotal">¥0</div>
-  </div>
-  <div class="summary-cell">
-    <div class="l">笔数</div>
-    <div class="v" id="sumCount">0</div>
-  </div>
-  <div class="summary-cell">
-    <div class="l">日均</div>
-    <div class="v" id="sumDaily">¥0</div>
-  </div>
-</div>
-
 <!-- 金额（自动从下方输入框识别） -->
 <div class="amount-card">
   <div class="label">金额</div>
@@ -368,18 +359,7 @@
 
 <button class="submit-btn" id="submit" disabled>点此提交</button>
 
-<div class="recent">
-  <h3>
-    <span id="recentTitle">本月记录</span>
-    <div class="actions">
-      <button id="filterBtn">筛选</button>
-      <button id="openRecords" class="open-records">查看全部 ›</button>
-      <button id="exportCsv">导出</button>
-    </div>
-  </h3>
-  <div id="filterBar" style="display:none"></div>
-  <div id="entries"></div>
-</div>
+<button class="open-records-btn" id="openRecords" type="button">📋 查看明细 ›</button>
 
 </div><!-- /view-home -->
 
@@ -402,10 +382,22 @@
     <button id="recordsFilterBtn">筛选</button>
   </div>
 
-  <div class="records-stats" id="recordsStats">
-    <span>合计 <b id="recordsSum">¥0</b></span>
-    <span><b id="recordsCount">0</b> 笔</span>
+  <div class="summary-bar" style="margin-bottom:10px">
+    <div class="summary-cell">
+      <div class="l" id="rRangeLabel">本月</div>
+      <div class="v" id="recordsSum">¥0</div>
+    </div>
+    <div class="summary-cell">
+      <div class="l">笔数</div>
+      <div class="v" id="recordsCount">0</div>
+    </div>
+    <div class="summary-cell">
+      <div class="l">日均</div>
+      <div class="v" id="recordsDaily">¥0</div>
+    </div>
   </div>
+
+  <div id="filterBar" style="display:none"></div>
 
   <div class="records-list" id="recordsList"></div>
 </div>
@@ -431,7 +423,7 @@
     <button id="exportAll">导出</button>
   </div>
   <div class="row">
-    <span class="l">导出 JSON 备份</span>
+    <span class="l">导出 JSON 备份 <b id="exportVerLabel" style="color:var(--accent)"></b></span>
     <button id="exportJson">导出</button>
   </div>
   <div class="row">
@@ -585,6 +577,7 @@ const DEFAULT_CATS = [
   {id:'日用', icon:'📦'},
   {id:'出行', icon:'🚗'},
   {id:'娱乐', icon:'🎮'},
+  {id:'医疗健康', icon:'💊'},
   {id:'工作需求', icon:'💼'},
   {id:'杂', icon:'🗂️'},
   {id:'转账', icon:'🔁'},
@@ -592,15 +585,16 @@ const DEFAULT_CATS = [
 const DEFAULT_KW = {
   '固定住房':['房贷','物业','车位','房租'],
   '水电气':['水费','电费','电费公摊','煤气','燃气','水','电','煤'],
-  '话费':['话费','电话费','流量','宽带','WiFi','wifi'],
-  '餐饮':['早餐','午餐','晚餐','早饭','午饭','晚饭','吃饭','外卖','咖啡','奶茶','买菜','零食','糕点','水果','吃','喝','麦当劳','肯德基','海底捞','美团','饿了么'],
-  '穿戴':['衣服','裤子','鞋子','帽子','短裤','拖鞋','外套','T恤','内衣','袜子'],
-  '日用':['洗发水','牙膏','纸巾','洗衣液','锅','碗','杯子','日用品','伞','储物','喷枪','储物柜','毛巾','牙刷'],
-  '出行':['打车','地铁','公交','高铁','火车','机票','加油','油费','高速','停车','停车费','的士','滴滴','出租车','动车'],
-  '娱乐':['电影','游戏','视频','会员','充值','乐园','门票','演唱会','书','看书','小说','漫画','Netflix','网飞','YouTube'],
-  '工作需求':['工作','业务','办公','文具','打印','AI','Ai','订阅','工具','Hermes'],
-  '杂':['ETC','etc','其他','杂','杂费'],
-  '转账':['信用卡','还款','还信用卡','转账','存款','存钱','储蓄','还款冲销']
+  '话费':['话费','电话费','流量','宽带','WiFi','wifi','换卡','补卡','SIM','sim'],
+  '餐饮':['早餐','午餐','晚餐','早饭','午饭','晚饭','吃饭','外卖','咖啡','奶茶','买菜','零食','糕点','水果','吃','喝','麦当劳','肯德基','海底捞','美团','饿了么','虾','虾球','生蚝','鱿鱼','蟹','海鲜','瑞幸','luckin','星巴克','蜜雪','喜茶','霸王茶姬','奈雪','面包','蛋糕','甜品','团购','凉茶','便利店','粒上皇','全家','罗森','小吃','火锅','烧烤','麻辣烫','汉堡','炸鸡','冰淇淋','雪糕','饮料','酸奶','牛奶','夜宵','早茶','生鲜','做饭','食材'],
+  '穿戴':['衣服','裤子','鞋子','帽子','短裤','拖鞋','外套','T恤','内衣','袜子','头盔','护膝','护具','泳衣','泳裤','泳镜','背包','书包','双肩包','面膜','护肤','防晒','口红','粉底','眼镜','首饰','手表','皮带','围巾','手套','羽绒服','卫衣','衬衫'],
+  '日用':['洗发水','牙膏','纸巾','洗衣液','锅','碗','杯子','日用品','伞','储物','喷枪','储物柜','毛巾','牙刷','洗洁精','垃圾袋','拖把','扫把','收纳','保鲜膜','充电宝','充电线','数据线','灯泡','电池','水杯','餐具'],
+  '出行':['打车','地铁','公交','高铁','火车','机票','加油','油费','高速','停车','停车费','的士','滴滴','出租车','动车','共享单车','单车','骑行','骑车','哈罗','哈啰','青桔','电动车','充电','充电桩','顺风车','货拉拉','粤通卡','过路费','路桥','ETC','etc','导航','代驾','车牌'],
+  '娱乐':['电影','游戏','视频','会员','充值','乐园','门票','演唱会','书','看书','小说','漫画','Netflix','网飞','YouTube','爱奇艺','腾讯视频','优酷','B站','bilibili','哔哩哔哩','KTV','唱歌','桌游','剧本杀','密室','蹦床','健身','游泳','玩具','积木','拼图','足球','篮球','羽毛球','演出','展览','手工'],
+  '医疗健康':['医院','挂号','门诊','急诊','看病','买药','药店','药房','体检','化验','检查','牙科','口腔','补牙','拔牙','洗牙','疫苗','打针','输液','维生素','钙片','感冒药','创可贴','口罩','医疗','医生','诊所','理疗','中药','药'],
+  '工作需求':['工作','业务','办公','文具','打印','AI','Ai','订阅','工具','Hermes','快递','运费','发票'],
+  '杂':['其他','杂','杂费'],
+  '转账':['信用卡','还款','还信用卡','转账','存款','存钱','储蓄','还款冲销','退款','返现']
 };
 
 // 支付方式（默认 + 关键词）
@@ -609,6 +603,8 @@ const DEFAULT_PAYS = [
   {id:'信用卡', icon:'💳'},
   {id:'支付宝', icon:'🐜'},
   {id:'微信', icon:'💚'},
+  {id:'抖音月付', icon:'🎵'},
+  {id:'美团月付', icon:'🛵'},
   {id:'现金', icon:'💵'},
   {id:'其他', icon:'❓'}
 ];
@@ -617,6 +613,8 @@ const DEFAULT_PAYKW = {
   '信用卡':['信用卡','广发','招行','中信','工商','工商信用卡','visa','万事达','master'],
   '支付宝':['支付宝','花呗','余额宝','借呗'],
   '微信':['微信','微信支付','零钱'],
+  '抖音月付':['抖音','抖音月付','抖音支付'],
+  '美团月付':['美团','美团月付','美团外卖','美团支付','大众点评'],
   '现金':['现金','纸币','人民币现金','当面付']
 };
 
@@ -624,14 +622,41 @@ function loadJSON(k, d){
   try{const v=JSON.parse(localStorage.getItem(k));if(v)return v}catch(e){}
   return JSON.parse(JSON.stringify(d));
 }
-let CATS = loadJSON(CAT_KEY(), DEFAULT_CATS);
-let KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW);
-let PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS);
-let PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW);
+/* v13:把新版本默认配置里缺失的项合并进用户已有配置(只加不减,用户自定义保留) */
+function mergeDefaults(userVal, defaultVal){
+  try{
+    if(Array.isArray(userVal)){
+      const ids = new Set((userVal||[]).map(x=>x&&x.id));
+      return [...(userVal||[]), ...defaultVal.filter(x=>!ids.has(x.id))];
+    }
+    const out = {...(userVal||{})};
+    for(const [k,v] of Object.entries(defaultVal)){
+      if(!out[k]) out[k] = v.slice();
+      else{
+        const set = new Set(out[k]||[]);
+        (v||[]).forEach(w=>set.add(w));
+        out[k] = [...set];
+      }
+    }
+    return out;
+  }catch(e){ return defaultVal; }
+}
+let CATS = mergeDefaults(loadJSON(CAT_KEY(), DEFAULT_CATS), DEFAULT_CATS);
+let KEYWORDS = mergeDefaults(loadJSON(KW_KEY(), DEFAULT_KW), DEFAULT_KW);
+let PAYS = mergeDefaults(loadJSON(PAY_KEY(), DEFAULT_PAYS), DEFAULT_PAYS);
+let PAYKW = mergeDefaults(loadJSON(PAYKW_KEY(), DEFAULT_PAYKW), DEFAULT_PAYKW);
 function saveCats(){localStorage.setItem(CAT_KEY(), JSON.stringify(CATS))}
 function saveKw(){localStorage.setItem(KW_KEY(), JSON.stringify(KEYWORDS))}
 function savePays(){localStorage.setItem(PAY_KEY(), JSON.stringify(PAYS))}
 function savePayKw(){localStorage.setItem(PAYKW_KEY(), JSON.stringify(PAYKW))}
+/* v13:加载用户配置时合并新版本默认项(只加不减),并落盘保证持久生效 */
+function loadUserConfig(){
+  CATS = mergeDefaults(loadJSON(CAT_KEY(), DEFAULT_CATS), DEFAULT_CATS);
+  KEYWORDS = mergeDefaults(loadJSON(KW_KEY(), DEFAULT_KW), DEFAULT_KW);
+  PAYS = mergeDefaults(loadJSON(PAY_KEY(), DEFAULT_PAYS), DEFAULT_PAYS);
+  PAYKW = mergeDefaults(loadJSON(PAYKW_KEY(), DEFAULT_PAYKW), DEFAULT_PAYKW);
+  try{ saveCats(); saveKw(); savePays(); savePayKw(); }catch(e){}
+}
 
 
 /* ========== v12 多账号认证 (08-09) ========== */
@@ -850,9 +875,8 @@ function setBudget(y,m,val){
 /* ========== DOM =========== */
 const $ = id=>document.getElementById(id);
 const amountEl=$('amount'), itemEl=$('item'), submitEl=$('submit'),
-  entriesEl=$('entries'), monthEl=$('monthLabel'),
-  toastEl=$('toast'), sumTotal=$('sumTotal'), sumCount=$('sumCount'),
-  sumDaily=$('sumDaily'), recentTitle=$('recentTitle'),
+  monthEl=$('monthLabel'),
+  toastEl=$('toast'),
   autoCat=$('autoCat'), autoCatName=$('autoCatName'),
   autoCatHint=$('autoCatHint');
 const budgetRemain=$('budgetRemain'), budgetSpent=$('budgetSpent'),
@@ -860,6 +884,8 @@ const budgetRemain=$('budgetRemain'), budgetSpent=$('budgetSpent'),
   budgetSub=$('budgetSub');
 
 /* ========== 智能归类 + 支付方式识别 =========== */
+/* v13:猜分类时跳过"杂"的主动匹配(杂只兜底,不抢词);
+   否则旧配置里 ETC->杂 这类默认词会永远把 ETC 归进杂 */
 function guessCat(text){
   if(!text) return null;
   const t = text.toLowerCase();
@@ -867,8 +893,10 @@ function guessCat(text){
   for(const [cat,kws] of Object.entries(KEYWORDS))
     for(const kw of kws) all.push({cat,kw,len:kw.length});
   all.sort((a,b)=>b.len-a.len);
-  for(const m of all)
+  for(const m of all){
+    if(m.cat==='杂') continue;
     if(t.includes(m.kw.toLowerCase())) return m.cat;
+  }
   return null;
 }
 
@@ -997,25 +1025,18 @@ function renderBudget(){
     : `超支 ${Math.abs(remain).toFixed(2)} 元（含转账）`;
 }
 function renderSummary(){
-  const allArr=monthEntries();
-  const arr = applyFilter(allArr);
-  const total=arr.reduce((s,e)=>s+Number(e.amount||0),0);
-  const days=new Date(viewYM.y,viewYM.m+1,0).getDate();
-  sumTotal.textContent='¥'+total.toFixed(2);
-  sumCount.textContent=String(arr.length);
-  sumDaily.textContent='¥'+(total/days).toFixed(2);
-  // 显示筛选提示
+  /* v13:首页 本月/笔数/日均 3卡已移到明细页,这里只更新月份标签 + 筛选状态条 */
   const fs = filterSummary();
   monthEl.textContent = fs
     ? `${viewYM.y}年${viewYM.m+1}月 · 已筛选`
     : `${viewYM.y}年${viewYM.m+1}月`;
-  recentTitle.textContent=`${viewYM.m+1}月记录${fs?'（筛选中）':''}`;
-  const transferTotal = arr.filter(e=>e.cat==='转账').reduce((s,e)=>s+Number(e.amount||0),0);
-  const spendTotal = total - transferTotal;
-  sumTotal.title = `消费 ¥${spendTotal.toFixed(2)} + 转账 ¥${transferTotal.toFixed(2)}`;
   // 筛选状态条
   const filterBar = $('filterBar');
+  if(!filterBar) return;
   if(fs){
+    const allArr = monthEntries();
+    const arr = applyFilter(allArr);
+    const total = arr.reduce((s,e)=>s+Number(e.amount||0),0);
     filterBar.style.display = '';
     filterBar.innerHTML = `<div style="background:rgba(232,182,96,.1);
       border:1px solid var(--accent);border-radius:8px;
@@ -1059,41 +1080,8 @@ function renderPaySummary(){
     </div>`;
   }).join('');
 }
-function renderEntries(){
-  const allArr=monthEntries();
-  const arr=applyFilter(allArr).slice().reverse();
-  if(!arr.length){
-    const fs = filterSummary();
-    entriesEl.innerHTML=`<div class="empty">${fs?'当前筛选无匹配':'本月还没记录，先加一笔 ↓'}</div>`;
-    return;
-  }
-  entriesEl.innerHTML = arr.map(e=>{
-    const cat=CATS.find(c=>c.id===e.cat);
-    const payTag = e.pay ? `<span class="pay-tag">${escapeHtml(e.pay)}</span>` : '';
-    return `<div class="entry" data-id="${e.id}">
-      <div class="left">
-        <div class="name">${cat?cat.icon:''} ${escapeHtml(e.item)}${payTag}</div>
-        <div class="meta">${cat?cat.id:''} · ${fmtDate(e.ts)}</div>
-      </div>
-      <div class="right">
-        <div class="price">¥${Number(e.amount).toFixed(2)}</div>
-        <button class="icon-btn act-edit" aria-label="编辑">✎</button>
-        <button class="icon-btn act-del" aria-label="删除">×</button>
-      </div>
-    </div>`;
-  }).join('');
-  entriesEl.querySelectorAll('.act-del').forEach(b=>{
-    b.addEventListener('click',e=>{
-      const id=e.target.closest('.entry').dataset.id;
-      saveEntries(loadEntries().filter(x=>x.id!==id));
-      renderAll();toast('已删除');
-    });
-  });
-  entriesEl.querySelectorAll('.act-edit').forEach(b=>{
-    b.addEventListener('click',e=>openEdit(e.target.closest('.entry').dataset.id));
-  });
-}
-function renderAll(){renderBudget();renderSummary();renderPaySummary();renderEntries();updateAutoCat()}
+/* v13:首页不再渲染明细列表(已移到二级页),renderEntries 移除 */
+function renderAll(){renderBudget();renderSummary();renderPaySummary();updateAutoCat()}
 
 function escapeHtml(s){return String(s||'').replace(/[<>&"']/g,
   c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c])}
@@ -1175,6 +1163,7 @@ const viewRecordsEl=document.querySelector('.view-records');
 const recordsListEl=$('recordsList');
 const recordsSumEl=$('recordsSum');
 const recordsCountEl=$('recordsCount');
+const recordsDailyEl=$('recordsDaily');
 const monthLabelR=$('monthLabelR');
 let recordsRange = 'month'; // month | all | last7
 
@@ -1245,10 +1234,19 @@ function renderRecords(){
   // v9 修复：e.ts 是 ISO 字符串，必须转 Date 再比较/排序
   arr = arr.slice().sort((a,b)=>new Date(b.ts).getTime()-new Date(a.ts).getTime());
 
-  // 顶部合计
+  // v13 顶部 3 卡：金额 / 笔数 / 日均（跟随当前范围）
   const total = arr.reduce((s,e)=>s+Number(e.amount||0),0);
   recordsSumEl.textContent = '¥'+total.toFixed(2);
   recordsCountEl.textContent = arr.length;
+  $('rRangeLabel').textContent =
+    recordsRange==='all'?'全部':recordsRange==='last7'?'近7天':'本月';
+  let days = 7;
+  if(recordsRange==='month') days = new Date(viewYM.y, viewYM.m+1, 0).getDate();
+  else if(recordsRange==='all' && arr.length){
+    const ts = arr.map(e=>new Date(e.ts).getTime());
+    days = Math.max(1, Math.round((Math.max(...ts)-Math.min(...ts))/86400000)+1);
+  }
+  recordsDailyEl.textContent = '¥'+(days>0?total/days:0).toFixed(2);
 
   if(!arr.length){
     recordsListEl.innerHTML = `<div class="empty">本月还没记录，先在首页加一笔 ↓</div>`;
@@ -1328,13 +1326,7 @@ function downloadCSV(fn,content){
   document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},100);
 }
-$('exportCsv').addEventListener('click',()=>{
-  const arr=applyFilter(monthEntries());
-  if(!arr.length){toast('当前筛选无记录');return}
-  const fn=`family-ledger-${viewYM.y}${String(viewYM.m+1).padStart(2,'0')}-v6.csv`;
-  downloadCSV(fn,toCSV(arr));toast(`✓ ${fn}（${arr.length} 条）`);
-});
-
+/* v13:首页 exportCsv 按钮已随列表移除,导出走菜单 */
 /* ========== 筛选弹层 =========== */
 const filterModal = $('filterModal');
 const filterCatGrid = $('filterCatGrid');
@@ -1392,7 +1384,7 @@ function updateFilterSummary(){
     : '当前无筛选条件';
 }
 
-$('filterBtn').addEventListener('click',openFilter);
+/* v13:首页 filterBtn 已随列表移除,筛选入口在明细页 recordsFilterBtn */
 $('filterApply').addEventListener('click',()=>{
   _filterDraft.from = $('filterFrom').value;
   _filterDraft.to = $('filterTo').value;
@@ -1449,6 +1441,9 @@ function openSheet(){
   /* v12.2:更新当前账号显示 */
   const lbl = $('currentUserLabel');
   if(lbl) lbl.textContent = CURRENT_USER || '(未登录)';
+  /* v13:显示当前导出版本号 */
+  const vl = $('exportVerLabel');
+  if(vl) vl.textContent = '(当前 v'+currentExportVer()+',导出后+1)';
   updateAdminEntry();
 }
 function closeSheet(){sheetMask.classList.remove('open');sheet.classList.remove('open')}
@@ -1459,10 +1454,7 @@ $('closeSheet').addEventListener('click',closeSheet);
 $('logoutBtn').addEventListener('click', ()=>{
   if(!confirm('确认退出当前账号?账本数据保留在浏览器中,下次登录同一账号仍可看到。'))return;
   logoutUser();
-  CATS = loadJSON(CAT_KEY(), DEFAULT_CATS);
-  KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW);
-  PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS);
-  PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW);
+  loadUserConfig();
   try{ filter = null; }catch(e){}
   closeSheet();
   showLoginModal();
@@ -1503,18 +1495,30 @@ $('budgetOk').addEventListener('click',()=>{
   toast(v>0?`✓ 工资已设置 ¥${v}`:'已清空');
 });
 
+/* v13:导出文件名版本号自动递增(需求6)——第一次 v13,之后每次 +1 */
+const EXPORT_VER_KEY = 'family-ledger-exportVer';
+function currentExportVer(){
+  try{ return parseInt(localStorage.getItem(EXPORT_VER_KEY)||'12',10); }catch(e){ return 12; }
+}
+function nextExportVer(){
+  const v = currentExportVer() + 1;
+  try{ localStorage.setItem(EXPORT_VER_KEY, String(v)); }catch(e){}
+  return v;
+}
 $('exportMonth').addEventListener('click',()=>{
   const arr=monthEntries();
   if(!arr.length){toast('本月没记录');return}
-  const fn=`family-ledger-${viewYM.y}${String(viewYM.m+1).padStart(2,'0')}-v6.csv`;
-  downloadCSV(fn,toCSV(arr));closeSheet();toast('✓ 已导出');
+  const ver=nextExportVer();
+  const fn=`family-ledger-${viewYM.y}${String(viewYM.m+1).padStart(2,'0')}-v${ver}.csv`;
+  downloadCSV(fn,toCSV(arr));closeSheet();toast(`✓ 已导出 v${ver}`);
 });
 $('exportAll').addEventListener('click',()=>{
   const arr=loadEntries();
   if(!arr.length){toast('还没记录');return}
+  const ver=nextExportVer();
   const _d=new Date();const _ds=_d.getFullYear()+String(_d.getMonth()+1).padStart(2,'0')+String(_d.getDate()).padStart(2,'0');
-  downloadCSV(`family-ledger-all-${_ds}-v6.csv`,toCSV(arr));
-  closeSheet();toast(`✓ ${arr.length} 条`);
+  downloadCSV(`family-ledger-all-${_ds}-v${ver}.csv`,toCSV(arr));
+  closeSheet();toast(`✓ ${arr.length} 条 (v${ver})`);
 });
 $('exportJson').addEventListener('click',()=>{
   const data={exported_at:new Date().toISOString(),cats:CATS,keywords:KEYWORDS,
@@ -1522,11 +1526,12 @@ $('exportJson').addEventListener('click',()=>{
     entries:loadEntries()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
+  const ver=nextExportVer();
   const _d=new Date();const _ds=_d.getFullYear()+String(_d.getMonth()+1).padStart(2,'0')+String(_d.getDate()).padStart(2,'0');
-  const a=document.createElement('a');a.href=url;a.download=`family-ledger-${_ds}-v6.json`;
+  const a=document.createElement('a');a.href=url;a.download=`family-ledger-${_ds}-v${ver}.json`;
   document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},100);
-  closeSheet();toast('✓ 备份已下载');
+  closeSheet();toast(`✓ 备份已下载 v${ver}`);
 });
 $('importBtn').addEventListener('click',()=>{closeSheet();$('fileInput').click()});
 $('fileInput').addEventListener('change',e=>{
@@ -1794,7 +1799,7 @@ editOk.addEventListener('click',()=>{
 <script>
 // === Service Worker 注册:浏览器缓存 HTML,弱网/二次访问秒开 ===
 if ('serviceWorker' in navigator) {
-  const swCode = `const CACHE='jizhang-v6';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('./')));self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r;}).catch(()=>caches.match(e.request).then(m=>m||caches.match('./'))))});`;
+  const swCode = `const CACHE='jizhang-v13';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('./')));self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r;}).catch(()=>caches.match(e.request).then(m=>m||caches.match('./'))))});`;
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});
 }
 
@@ -1883,11 +1888,8 @@ $('loginOk').addEventListener('click', async ()=>{
     }
     await loginUser(u, p);
     $('loginModal').classList.remove('open');
-    // 加载该用户数据
-    CATS = loadJSON(CAT_KEY(), DEFAULT_CATS);
-    KEYWORDS = loadJSON(KW_KEY(), DEFAULT_KW);
-    PAYS = loadJSON(PAY_KEY(), DEFAULT_PAYS);
-    PAYKW = loadJSON(PAYKW_KEY(), DEFAULT_PAYKW);
+    // 加载该用户数据(v13:自动合并新版本默认项)
+    loadUserConfig();
     try{ filter = loadJSON(FILTER_KEY(), null); }catch(e){ filter = null; }
     renderAll(); checkSubmit(); itemEl.focus();
     toast('✓ 欢迎,'+u);
@@ -1908,6 +1910,8 @@ $('loginPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginOk').
   const savedUser = localStorage.getItem('family-ledger-v6-currentUser');
   if(savedUser){
     CURRENT_USER = savedUser;
+    // v13:已登录直接加载配置(合并新默认项)
+    loadUserConfig();
     // 已登录用户直接进 PWA 主体
     if(typeof renderAll === 'function'){
       renderAll(); checkSubmit(); itemEl.focus();
