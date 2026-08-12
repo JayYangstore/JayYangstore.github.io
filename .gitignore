@@ -1,0 +1,12 @@
+# ===== 敏感数据：禁止提交到公开仓库 =====
+# 记账账本导出/导入载荷（含真实消费记录）
+*_import_payload*.json
+family-ledger*.json
+ledger-backup*.json
+*_待导入*.json
+*_待合并*.json
+
+# 本地备份/临时文件
+.backup-*
+*.backup-*
+.DS_Store
