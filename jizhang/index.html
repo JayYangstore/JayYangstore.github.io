@@ -1020,7 +1020,7 @@ function renderBudget(){
     budgetRemain.style.color='var(--ink)';
     return;
   }
-  budgetRemain.textContent = (remain>=0?'¥':'−¥')+Math.abs(remain).toLocaleString();
+  budgetRemain.textContent = (remain>=0?'¥':'−¥')+fmtMoney(Math.abs(remain));
   budgetRemain.style.color = remain>=0 ? 'var(--good)' : 'var(--bad)';
   const pct = Math.min(100, spent/income*100);
   budgetFill.style.width = pct+'%';
@@ -1047,7 +1047,7 @@ function renderSummary(){
       padding:8px 12px;margin-bottom:8px;font-size:12px;
       color:var(--ink-2);display:flex;justify-content:space-between;
       align-items:center">
-      <span>🔍 ${fs} · ${arr.length} 条 / ¥${total.toFixed(2)}</span>
+      <span>🔍 ${fs} · ${arr.length} 条 / ¥${fmtMoney(total)}</span>
       <button id="filterClearInline" style="background:transparent;
         border:1px solid var(--line);color:var(--ink-2);
         padding:3px 10px;border-radius:6px;font-size:11px;
@@ -1073,14 +1073,14 @@ function renderPaySummary(){
   if(!list.length){$('paySummary').style.display='none';return}
   const max = list[0][1];
   $('paySummary').style.display = '';
-  $('payTotal').textContent = '合计 ¥'+list.reduce((s,[,v])=>s+v,0).toFixed(2);
+  $('payTotal').textContent = '合计 ¥'+fmtMoney(list.reduce((s,[,v])=>s+v,0));
   $('payList').innerHTML = list.map(([pay,amt])=>{
     const p = PAYS.find(x=>x.id===pay) || {icon:'❓'};
     const pct = max>0 ? (amt/max*100):0;
     return `<div class="pay-row">
       <div class="name">${p.icon} ${escapeHtml(pay)}</div>
       <div class="bar"><div class="f" style="width:${pct}%"></div></div>
-      <div class="amt">¥${amt.toFixed(2)}</div>
+      <div class="amt">¥${fmtMoney(amt)}</div>
     </div>`;
   }).join('');
 }
@@ -1240,7 +1240,7 @@ function renderRecords(){
 
   // v13 顶部 3 卡：金额 / 笔数 / 日均（跟随当前范围）
   const total = arr.reduce((s,e)=>s+Number(e.amount||0),0);
-  recordsSumEl.textContent = '¥'+total.toFixed(2);
+  recordsSumEl.textContent = '¥'+fmtMoney(total);
   recordsCountEl.textContent = arr.length;
   $('rRangeLabel').textContent =
     recordsRange==='all'?'全部':recordsRange==='last7'?'近7天':'本月';
@@ -1250,7 +1250,7 @@ function renderRecords(){
     const ts = arr.map(e=>new Date(e.ts).getTime());
     days = Math.max(1, Math.round((Math.max(...ts)-Math.min(...ts))/86400000)+1);
   }
-  recordsDailyEl.textContent = '¥'+(days>0?total/days:0).toFixed(2);
+  recordsDailyEl.textContent = '¥'+fmtMoney(days>0?total/days:0);
 
   if(!arr.length){
     recordsListEl.innerHTML = `<div class="empty">本月还没记录，先在首页加一笔 ↓</div>`;
@@ -1277,7 +1277,7 @@ function renderRecords(){
     else label = `${mo}月${da}日 · ${'日一二三四五六'[dt.getDay()]}`;
     const dayTotal = items.reduce((s,e)=>s+Number(e.amount||0),0);
     return `<div class="records-day-group">
-      <div class="day-label"><span>${label}</span><b>¥${dayTotal.toFixed(2)}</b></div>
+      <div class="day-label"><span>${label}</span><b>¥${fmtMoney(dayTotal)}</b></div>
       ${items.map(e=>{
         const cat = CATS.find(c=>c.id===e.cat);
         const payTag = e.pay ? `<span class="pay-tag">${escapeHtml(e.pay)}</span>` : '';
@@ -1384,7 +1384,7 @@ function updateFilterSummary(){
   if(_filterDraft.cats.length) parts.push(`${_filterDraft.cats.length}个分类`);
   if(_filterDraft.pays.length) parts.push(`${_filterDraft.pays.length}个支付方式`);
   $('filterSummary').textContent = parts.length
-    ? `匹配: ${arr.length} 条 · ¥${total.toFixed(2)} (${parts.join(' · ')})`
+    ? `匹配: ${arr.length} 条 · ¥${fmtMoney(total)} (${parts.join(' · ')})`
     : '当前无筛选条件';
 }
 
