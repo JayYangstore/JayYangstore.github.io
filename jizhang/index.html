@@ -43,7 +43,7 @@
     color:var(--ink);width:36px;height:36px;border-radius:10px;
     font-size:18px;cursor:pointer;line-height:1;padding:0}
 
-  .budget{background:linear-gradient(135deg,#181D27 0%,#0E1218 100%);
+  .budget{background:var(--bg-2);
     border:1px solid var(--line);border-radius:18px;padding:16px;
     margin-bottom:14px;position:relative}
   .budget-top{display:flex;justify-content:space-between;align-items:flex-start}
@@ -62,7 +62,7 @@
   .budget-row .right .spent b{color:var(--ink);font-size:15px}
   .budget-bar{height:8px;background:var(--bg);border-radius:4px;
     margin-top:14px;overflow:hidden;position:relative}
-  .budget-bar .fill{height:100%;background:linear-gradient(90deg,#4ade80,#E8B660,#f87171);
+  .budget-bar .fill{height:100%;background:linear-gradient(90deg,var(--good),var(--warn),var(--bad));
     transition:width .4s;border-radius:4px}
 
   .summary-bar{display:grid;grid-template-columns:1fr 1fr 1fr;
@@ -74,10 +74,10 @@
   .summary-cell .v{font-size:18px;font-weight:600;margin-top:4px;
     font-variant-numeric:tabular-nums}
 
-  .amount-card{background:linear-gradient(180deg,#181D27 0%,#0E1218 100%);
+  .amount-card{background:var(--bg-2);
     border:1px solid var(--line);border-radius:24px;
     padding:32px 20px 24px;text-align:center;margin-bottom:16px;
-    box-shadow:0 20px 60px -30px rgba(232,182,96,.25)}
+    box-shadow:0 20px 60px -30px var(--accent)}
   .amount-card .label{font-size:11px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
   .amount-input{background:transparent;border:none;outline:none;
@@ -268,8 +268,8 @@
   .pay-opt{background:var(--bg);border:1px solid var(--line);border-radius:8px;
     padding:10px 8px;font-size:12px;text-align:center;cursor:pointer;
     color:var(--ink-2)}
-  .pay-opt.active{background:rgba(34,197,94,.15);border-color:var(--good);
-    color:var(--ink)}
+  .pay-opt.active{background:color-mix(in srgb,var(--good) 18%,transparent);
+    border-color:var(--good);color:var(--ink)}
 
   /* 支付方式汇总 */
   .pay-summary{background:var(--bg-2);border:1px solid var(--line);
@@ -1833,7 +1833,7 @@ const THEMES = {
     vars:{'--bg':'#F6F6F6','--bg-2':'#FFFFFF','--line':'#E6F9EA',
           '--ink':'#131313','--ink-2':'#5B6473','--ink-3':'#8A8A8A',
           '--accent':'#75F48E','--accent-2':'#3CD96A',
-          '--ok':'#22c55e','--warn':'#E8B660','--bad':'#EF4444','--good':'#22c55e'}},
+          '--ok':'#0E7C3A','--warn':'#B8860B','--bad':'#DC2626','--good':'#0E7C3A'}},
   'deep-night': {name:'深夜导航', desc:'深紫蓝 + 荧光黄',
     vars:{'--bg':'#1A2B4C','--bg-2':'#2E2A40','--line':'#3D3754',
           '--ink':'#FDFFFD','--ink-2':'#C8C4D0','--ink-3':'#8A8597',
@@ -1843,7 +1843,7 @@ const THEMES = {
     vars:{'--bg':'#FEFEFE','--bg-2':'#FFFFFF','--line':'#E8E8E8',
           '--ink':'#010101','--ink-2':'#3D3D3D','--ink-3':'#7A7A7A',
           '--accent':'#ADBAC5','--accent-2':'#7A8895',
-          '--ok':'#22c55e','--warn':'#E8B660','--bad':'#EF4444','--good':'#22c55e'}},
+          '--ok':'#0E7C3A','--warn':'#B8860B','--bad':'#DC2626','--good':'#0E7C3A'}},
 };
 const THEME_KEY = 'family-ledger-theme';
 const THEME_ORDER = ['gold','neon-graphite','mint-white','deep-night','pale-sky'];
