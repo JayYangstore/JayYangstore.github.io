@@ -18,6 +18,7 @@
     --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
     --good:#22c55e;
   }
+  /* v13.2:主题变量由 JS 写入 <html style="--bg:...">,此处为空避免编译警告 */
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",
@@ -447,6 +448,11 @@
     <span class="l">编辑支付关键词</span>
     <button id="editPayKw">编辑</button>
   </div>
+  <div class="section-title">主题</div>
+  <div class="row">
+    <span class="l">配色方案 <b id="themeLabel" style="color:var(--accent);font-weight:normal"></b></span>
+    <button id="themeBtn">切换</button>
+  </div>
   <div class="section-title">说明</div>
   <div class="note">
     数据存本机浏览器。换手机前请先"导出 JSON 备份"。<br><br>
@@ -468,6 +474,18 @@
   <div class="row" id="adminEntryRow" style="display:none">
     <span class="l">账号管理(仅 admin)</span>
     <button id="adminBtn">管理</button>
+  </div>
+</div>
+
+<!-- v13.2:主题选择弹层 -->
+<div class="edit-modal" id="themeModal">
+  <div class="edit-card">
+    <h3>🎨 配色方案</h3>
+    <p style="color:var(--ink-3);font-size:12px;margin:0 0 14px">选「跟随系统」会根据手机深/浅模式自动切。</p>
+    <div id="themeOptions" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="actions">
+      <button class="cancel" id="themeClose">关闭</button>
+    </div>
   </div>
 </div>
 
@@ -1798,6 +1816,118 @@ editOk.addEventListener('click',()=>{
 });
 
 /* v12:启动代码已移到下面 loginModal 之后,确保 showLoginModal 函数先定义 */
+
+/* ========== v13.2 主题切换(放在这里保证 $ 已定义) =========== */
+const THEMES = {
+  gold: {name:'金色(原版)', desc:'深色 + 金色按钮 · 当前线上',
+    vars:{'--bg':'#0B0E13','--bg-2':'#12161F','--line':'#1F2530',
+          '--ink':'#E8ECF2','--ink-2':'#9AA3B2','--ink-3':'#5B6473',
+          '--accent':'#E8B660','--accent-2':'#D08A3E',
+          '--ok':'#4ade80','--warn':'#fbbf24','--bad':'#f87171','--good':'#22c55e'}},
+  'neon-graphite': {name:'霓虹石墨', desc:'深灰 + 荧光绿',
+    vars:{'--bg':'#2D3338','--bg-2':'#383F44','--line':'#474D48',
+          '--ink':'#FDFFFF','--ink-2':'#A5ADA6','--ink-3':'#7A807B',
+          '--accent':'#C1FC04','--accent-2':'#9DD003',
+          '--ok':'#C1FC04','--warn':'#E8B660','--bad':'#F87171','--good':'#C1FC04'}},
+  'mint-white': {name:'薄荷白', desc:'近白 + 薄荷绿',
+    vars:{'--bg':'#F6F6F6','--bg-2':'#FFFFFF','--line':'#E6F9EA',
+          '--ink':'#131313','--ink-2':'#5B6473','--ink-3':'#8A8A8A',
+          '--accent':'#75F48E','--accent-2':'#3CD96A',
+          '--ok':'#22c55e','--warn':'#E8B660','--bad':'#EF4444','--good':'#22c55e'}},
+  'deep-night': {name:'深夜导航', desc:'深紫蓝 + 荧光黄',
+    vars:{'--bg':'#1A2B4C','--bg-2':'#2E2A40','--line':'#3D3754',
+          '--ink':'#FDFFFD','--ink-2':'#C8C4D0','--ink-3':'#8A8597',
+          '--accent':'#FCFE1F','--accent-2':'#D8DA10',
+          '--ok':'#FCFE1F','--warn':'#E8B660','--bad':'#F87171','--good':'#FCFE1F'}},
+  'pale-sky': {name:'淡蓝白', desc:'白 + 浅蓝',
+    vars:{'--bg':'#FEFEFE','--bg-2':'#FFFFFF','--line':'#E8E8E8',
+          '--ink':'#010101','--ink-2':'#3D3D3D','--ink-3':'#7A7A7A',
+          '--accent':'#ADBAC5','--accent-2':'#7A8895',
+          '--ok':'#22c55e','--warn':'#E8B660','--bad':'#EF4444','--good':'#22c55e'}},
+};
+const THEME_KEY = 'family-ledger-theme';
+const THEME_ORDER = ['gold','neon-graphite','mint-white','deep-night','pale-sky'];
+function applyTheme(id, _persist=true){
+  const t = THEMES[id];
+  if(!t) return;
+  const html = document.documentElement;
+  let s = '';
+  for(const [k,v] of Object.entries(t.vars)) s += `${k}:${v};`;
+  html.setAttribute('style', s);
+  // 只有显式选择时才写 localStorage,auto 模式保持 null 以便下次仍跟随系统
+  if(_persist){
+    try{ localStorage.setItem(THEME_KEY, id); }catch(e){}
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t.vars['--bg']);
+  updateThemeLabel();
+}
+function autoThemeId(){
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return dark ? 'deep-night' : 'pale-sky';
+}
+function loadTheme(){
+  let id;
+  try{ id = localStorage.getItem(THEME_KEY) || 'auto'; }catch(e){ id='auto'; }
+  if(id==='auto') id = autoThemeId();
+  applyTheme(id, false);  // 启动时不持久化,保持 auto 语义
+  // 监听系统深浅变化(仅 auto 模式)
+  if(window.matchMedia){
+    try{
+      window.matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', () => {
+          let cur;
+          try{ cur = localStorage.getItem(THEME_KEY) || 'auto'; }catch(e){ cur='auto'; }
+          if(cur==='auto') applyTheme(autoThemeId(), false);
+        });
+    }catch(e){}
+  }
+}
+function openThemeModal(){
+  let cur;
+  try{ cur = localStorage.getItem(THEME_KEY) || 'auto'; }catch(e){ cur='auto'; }
+  const opts = [['auto', '📱 跟随系统', '深/浅模式自动切换']]
+    .concat(THEME_ORDER.map(id => [id, THEMES[id].name, THEMES[id].desc]));
+  const body = $('themeOptions');
+  body.innerHTML = opts.map(([id, name, desc]) => {
+    const sel = (cur===id);
+    return `<div data-theme="${id}" style="display:flex;align-items:center;gap:12px;
+      padding:12px;border:1px solid ${sel?'var(--accent)':'var(--line)'};
+      border-radius:10px;background:${sel?'rgba(232,182,96,.1)':'var(--bg)'};
+      cursor:pointer">
+      <div style="flex:1">
+        <div style="font-size:15px;color:var(--ink);font-weight:${sel?600:500}">${name}</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">${desc}</div>
+      </div>
+      ${sel?'<div style="color:var(--accent);font-size:18px">✓</div>':''}
+    </div>`;
+  }).join('');
+  body.querySelectorAll('[data-theme]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.theme;
+      try{ localStorage.setItem(THEME_KEY, id); }catch(e){}
+      if(id==='auto') applyTheme(autoThemeId());
+      else applyTheme(id);
+      openThemeModal(); // 刷新选中状态
+    });
+  });
+  $('themeModal').classList.add('open');
+}
+function updateThemeLabel(){
+  const lbl = $('themeLabel');
+  if(!lbl) return;
+  let cur;
+  try{ cur = localStorage.getItem(THEME_KEY) || 'auto'; }catch(e){ cur='auto'; }
+  const name = cur==='auto' ? '📱 跟随系统' : (THEMES[cur]?.name || cur);
+  lbl.textContent = '· ' + name;
+}
+$('themeBtn').addEventListener('click', () => { closeSheet(); openThemeModal(); });
+$('themeClose').addEventListener('click', () => $('themeModal').classList.remove('open'));
+$('themeModal').addEventListener('click', e => {
+  if(e.target === $('themeModal')) $('themeModal').classList.remove('open');
+});
+/* 启动时立即应用主题(在 DOMContentLoaded 之前也能跑,因为没依赖 DOM 结构,只读 localStorage) */
+loadTheme();
 </script>
 
 <script>
