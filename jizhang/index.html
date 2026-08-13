@@ -1829,24 +1829,24 @@ const THEMES = {
           '--ink':'#FDFFFF','--ink-2':'#A5ADA6','--ink-3':'#7A807B',
           '--accent':'#C1FC04','--accent-2':'#9DD003',
           '--ok':'#C1FC04','--warn':'#E8B660','--bad':'#F87171','--good':'#C1FC04'}},
-  'mint-white': {name:'薄荷白', desc:'近白 + 薄荷绿',
-    vars:{'--bg':'#F6F6F6','--bg-2':'#FFFFFF','--line':'#E6F9EA',
-          '--ink':'#131313','--ink-2':'#5B6473','--ink-3':'#8A8A8A',
-          '--accent':'#75F48E','--accent-2':'#3CD96A',
-          '--ok':'#0E7C3A','--warn':'#B8860B','--bad':'#DC2626','--good':'#0E7C3A'}},
+  'sky-mint': {name:'天蓝薄荷', desc:'蓝绿渐层 · 鲜活年轻',
+    vars:{'--bg':'#F0FBFE','--bg-2':'#FFFFFF','--line':'#D8F0FF',
+          '--ink':'#0F3D5C','--ink-2':'#3D7895','--ink-3':'#7C9CB0',
+          '--accent':'#30AFFF','--accent-2':'#1A8AE8',
+          '--ok':'#0E7C3A','--warn':'#E8A33D','--bad':'#E63946','--good':'#0E7C3A'}},
+  'titanium-slate': {name:'钛金属灰', desc:'iPhone 15 Pro 钛色 · 金属质感',
+    vars:{'--bg':'#ECEDEF','--bg-2':'#FFFFFF','--line':'#D1D1D6',
+          '--ink':'#1D1D1F','--ink-2':'#48484A','--ink-3':'#86868B',
+          '--accent':'#1D1D1F','--accent-2':'#3A3A3C',
+          '--ok':'#34C759','--warn':'#FF9F0A','--bad':'#FF3B30','--good':'#34C759'}},
   'deep-night': {name:'深夜导航', desc:'深紫蓝 + 荧光黄',
     vars:{'--bg':'#1A2B4C','--bg-2':'#2E2A40','--line':'#3D3754',
           '--ink':'#FDFFFD','--ink-2':'#C8C4D0','--ink-3':'#8A8597',
           '--accent':'#FCFE1F','--accent-2':'#D8DA10',
           '--ok':'#FCFE1F','--warn':'#E8B660','--bad':'#F87171','--good':'#FCFE1F'}},
-  'pale-sky': {name:'淡蓝白', desc:'白 + 浅蓝',
-    vars:{'--bg':'#FEFEFE','--bg-2':'#FFFFFF','--line':'#E8E8E8',
-          '--ink':'#010101','--ink-2':'#3D3D3D','--ink-3':'#7A7A7A',
-          '--accent':'#ADBAC5','--accent-2':'#7A8895',
-          '--ok':'#0E7C3A','--warn':'#B8860B','--bad':'#DC2626','--good':'#0E7C3A'}},
 };
 const THEME_KEY = 'family-ledger-theme';
-const THEME_ORDER = ['gold','neon-graphite','mint-white','deep-night','pale-sky'];
+const THEME_ORDER = ['gold','neon-graphite','sky-mint','titanium-slate','deep-night'];
 function applyTheme(id, _persist=true){
   const t = THEMES[id];
   if(!t) return;
@@ -1869,6 +1869,9 @@ function autoThemeId(){
 function loadTheme(){
   let id;
   try{ id = localStorage.getItem(THEME_KEY) || 'auto'; }catch(e){ id='auto'; }
+  // v13.3 兼容:旧版薄荷白/淡蓝白已移除,老用户存储值映射到最近风格
+  const LEGACY = { 'mint-white':'sky-mint', 'pale-sky':'titanium-slate' };
+  if(LEGACY[id]) id = LEGACY[id];
   if(id==='auto') id = autoThemeId();
   applyTheme(id, false);  // 启动时不持久化,保持 auto 语义
   // 监听系统深浅变化(仅 auto 模式)
