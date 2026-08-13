@@ -397,6 +397,42 @@
     color:#FFFFFF;
     border:1px solid rgba(255,255,255,.35);
   }
+  /* ===== 明细页玻璃统一 ===== */
+  /* 工具栏按钮(本月/全部/近7天/筛选):玻璃底;active 白字防黑底黑字 */
+  .glass-theme .records-toolbar button{
+    background:rgba(255,255,255,.42);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+    border-color:rgba(255,255,255,.6);
+  }
+  .glass-theme .records-toolbar button.active{
+    background:var(--accent);
+    color:#FFFFFF;
+    border-color:var(--accent);
+  }
+  /* 明细列表:整块玻璃容器替代实底白块,光晕透出+边缘自然融合 */
+  .glass-theme .records-list{
+    background:rgba(255,255,255,.4);
+    -webkit-backdrop-filter:blur(28px) saturate(180%);
+    backdrop-filter:blur(28px) saturate(180%);
+    border:1px solid rgba(255,255,255,.55);
+    box-shadow:0 10px 30px rgba(31,45,61,.10), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  /* day-group 不再叠玻璃(容器已整块玻璃),避免双层白块 */
+  .glass-theme .records-day-group{
+    background:transparent;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    border:none;
+    box-shadow:none;
+  }
+  /* 列表内小圆钮(编辑/删除)玻璃化 */
+  .glass-theme .records-day-group .entry .icon-btn{
+    background:rgba(255,255,255,.42);
+    -webkit-backdrop-filter:blur(12px);
+    backdrop-filter:blur(12px);
+    border-color:rgba(255,255,255,.55);
+  }
 </style>
 </head>
 <body>
