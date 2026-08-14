@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>🎉 AA 结算器</title>
+<style>
+:root{
+  --bg:#0B0E13; --bg2:#12161F; --line:#1F2530; --ink:#E8ECF2; --ink2:#9AA3B2; --ink3:#5C6572;
+  --accent:#E8B660; --good:#2ECC71; --bad:#E74C3C;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh}
+.page{max-width:520px;margin:0 auto;padding:16px}
+.hidden{display:none!important}
+h1{font-size:20px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.sub{color:var(--ink3);font-size:12px;margin:0 0 16px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:14px;color:var(--ink2);font-weight:600}
+label{display:block;font-size:12px;color:var(--ink3);margin:10px 0 4px}
+input[type=text],input[type=number],select{width:100%;padding:11px;background:var(--bg);
+  border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;
+  font-weight:600;cursor:pointer;background:var(--accent);color:#0B0E13;margin-top:10px}
+.btn:active{transform:scale(.99)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink2)}
+.btn.danger{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.row select{flex:0 0 92px;padding:9px}
+.row input.amt{flex:0 0 84px;padding:9px;text-align:right}
+.row input.note{flex:1;padding:9px}
+.row .del{flex:0 0 34px;height:38px;border:none;background:transparent;color:var(--bad);
+  font-size:18px;cursor:pointer;border-radius:8px}
+.row .del:active{background:rgba(231,76,60,.15)}
+.payer-tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:5px 12px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;color:var(--ink2)}
+.payer-tag.active{border-color:var(--accent);color:var(--accent)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.r-cell{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.r-cell .v{font-size:17px;font-weight:700;color:var(--ink)}
+.r-cell .l{font-size:11px;color:var(--ink3);margin-top:2px}
+.r-cell.good .v{color:var(--good)} .r-cell.bad .v{color:var(--bad)}
+.payer-sum{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.payer-sum:last-child{border:none}
+.payer-sum .delta{font-weight:600}
+.settle-item{display:flex;justify-content:space-between;padding:10px;background:var(--bg);
+  border:1px solid var(--line);border-radius:9px;margin-bottom:8px;font-size:14px}
+.settle-item .amt{color:var(--good);font-weight:700}
+.wechat-box{background:#1A1F2A;border:1px solid var(--line);border-radius:10px;padding:14px;
+  white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--ink2);margin-bottom:10px;
+  max-height:260px;overflow-y:auto}
+.copy-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--accent);
+  color:#0B0E13;font-size:15px;font-weight:600;cursor:pointer}
+.back{background:none;border:none;color:var(--ink2);font-size:15px;cursor:pointer;padding:4px 8px}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.topbar h1{margin:0}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);
+  color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;z-index:999;
+  opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.step{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:var(--ink2)}
+.step b{background:var(--accent);color:#0B0E13;width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px}
+.link-share{background:var(--bg);border:1px dashed var(--line);border-radius:9px;padding:10px;
+  font-size:12px;color:var(--ink2);word-break:break-all;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ======= 首页：活动列表 / 创建 ======= -->
+<div id="viewHome" class="view">
+  <h1>🎉 AA 结算器</h1>
+  <p class="sub">多人垫付 · 按家庭均分 · 一键生成微信结算文案</p>
+
+  <div class="card">
+    <h3>➕ 新建活动</h3>
+    <label>活动名（如：8/16 周末游）</label>
+    <input id="newActivityName" type="text" placeholder="周末 3 家出游" maxlength="30">
+    <button class="btn" id="btnCreateActivity">创建活动</button>
+  </div>
+
+  <div class="card">
+    <h3>📋 历史活动</h3>
+    <div id="activityList"></div>
+  </div>
+
+  <div class="card">
+    <h3>🔗 已有活动 ID？</h3>
+    <label>输入 6 位活动码（朋友发你的）</label>
+    <input id="joinCode" type="text" placeholder="如 7X2ASM" maxlength="6" style="text-transform:uppercase">
+    <button class="btn ghost" id="btnJoin">进入活动</button>
+  </div>
+</div>
+
+<!-- ======= 活动页：记一笔 + 算账 ======= -->
+<div id="viewActivity" class="view hidden">
+  <div class="topbar">
+    <button class="back" id="btnBack">‹</button>
+    <h1 id="activityTitle">活动</h1>
+  </div>
+  <p class="sub" style="margin-top:-8px" id="activityLink">链接</p>
+
+  <div class="card">
+    <h3>💸 记一笔</h3>
+    <div class="row">
+      <select id="entryPayer"></select>
+      <select id="entryCat">
+        <option value="餐">🍜 餐</option>
+        <option value="住">🏨 住</option>
+        <option value="玩">🎢 玩</option>
+        <option value="行">🚗 行</option>
+        <option value="其他">📦 其他</option>
+      </select>
+      <input class="amt" id="entryAmt" type="number" placeholder="金额" inputmode="decimal" min="0" step="0.01">
+    </div>
+    <div class="row">
+      <input class="note" id="entryNote" type="text" placeholder="备注（如 午餐/门票）" maxlength="40">
+      <button class="btn ghost" id="btnAddEntry" style="margin:0;padding:10px 14px;width:auto">+ 记</button>
+    </div>
+    <div class="step" style="margin-top:8px"><b>1</b> 谁付的？选人</div>
+    <div id="payerTags"></div>
+  </div>
+
+  <div class="card">
+    <h3>🧾 已记 <span id="entryCount">0</span> 笔 · 合计 <span id="entryTotal">¥0</span></h3>
+    <div id="entryList"></div>
+  </div>
+
+  <button class="btn" id="btnSettle" style="margin-bottom:16px">🧮 算账（按家庭均分）</button>
+
+  <!-- 结果区 -->
+  <div id="settleResult" class="hidden">
+    <div class="result-grid">
+      <div class="r-cell"><div class="v" id="resTotal">¥0</div><div class="l">总支出</div></div>
+      <div class="r-cell"><div class="v" id="resFamilies">0</div><div class="l">参与家庭</div></div>
+      <div class="r-cell"><div class="v" id="resPer">¥0</div><div class="l">每家应出</div></div>
+      <div class="r-cell"><div class="v" id="resTransfers">0</div><div class="l">最少转账</div></div>
+    </div>
+    <div class="card">
+      <h3>每家实付 vs 应出</h3>
+      <div id="payerSums"></div>
+    </div>
+    <div class="card">
+      <h3>🔄 结算方案（最少转账）</h3>
+      <div id="settleList"></div>
+    </div>
+    <div class="card">
+      <h3>📋 微信文案包</h3>
+      <div class="wechat-box" id="wechatText"></div>
+      <button class="copy-btn" id="btnCopy">📋 复制文案</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 配置 ============ */
+const API = 'https://aa-2026-settle.280905376.workers.dev';
+const CATS = { '餐':'🍜','住':'🏨','玩':'🎢','行':'🚗','其他':'📦' };
+
+/* ============ 工具 ============ */
+const $ = id => document.getElementById(id);
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function api(path, method='GET', body=null){
+  const opt = { method, headers:{} };
+  if(body){ opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const res = await fetch(API+path, opt);
+  if(!res.ok){
+    let msg = '请求失败';
+    try{ msg = (await res.json()).error || msg; }catch(e){}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+/* ============ 状态 ============ */
+let state = { activities: [], current: null, payers: [] };
+
+/* ============ 首页 ============ */
+async function loadActivities(){
+  try{
+    state.activities = await api('/api/activities');
+    const list = $('activityList');
+    if(!state.activities.length){ list.innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:10px">还没有活动，创建一个吧</div>'; return; }
+    list.innerHTML = state.activities.map(a=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+        <div>
+          <div style="font-weight:600">${esc(a.name)}</div>
+          <div style="font-size:11px;color:var(--ink3)">${a.archived?'📦 已归档 · ':''}${a.entries_count}笔 · ¥${Number(a.total).toFixed(2)}</div>
+        </div>
+        <button class="btn ghost" style="margin:0;padding:8px 14px;width:auto" onclick="openActivity('${a.id}')">进入</button>
+      </div>
+    `).join('');
+  }catch(e){ toast('加载失败: '+e.message); }
+}
+$('btnCreateActivity').addEventListener('click', async ()=>{
+  const name = $('newActivityName').value.trim() || '未命名活动';
+  try{
+    const a = await api('/api/activities','POST',{name});
+    toast('✅ 创建成功: '+a.id);
+    $('newActivityName').value = '';
+    openActivity(a.id);
+  }catch(e){ toast('创建失败: '+e.message); }
+});
+$('btnJoin').addEventListener('click', ()=>{
+  const code = $('joinCode').value.trim().toUpperCase();
+  if(!code){ toast('请输入活动码'); return; }
+  openActivity(code);
+});
+
+/* ============ 活动页 ============ */
+let currentEntries = [];
+async function openActivity(id){
+  try{
+    const data = await api('/api/activities/'+id);
+    state.current = data;
+    currentEntries = data.entries || [];
+    state.payers = data.payers && data.payers.length ? data.payers : ['我家'];
+    $('activityTitle').textContent = data.name;
+    $('activityLink').textContent = '邀请链接: ' + location.origin + location.pathname + '?a=' + id;
+    $('viewHome').classList.add('hidden');
+    $('viewActivity').classList.remove('hidden');
+    renderPayers();
+    renderEntries();
+    $('settleResult').classList.add('hidden');
+  }catch(e){ toast('活动不存在或加载失败: '+e.message); }
+}
+$('btnBack').addEventListener('click', ()=>{
+  $('viewActivity').classList.add('hidden');
+  $('viewHome').classList.remove('hidden');
+  loadActivities();
+});
+function renderPayers(){
+  $('entryPayer').innerHTML = state.payers.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  $('payerTags').innerHTML = state.payers.map(p=>`<span class="payer-tag" data-p="${esc(p)}">${esc(p)}</span>`).join('');
+  $('payerTags').querySelectorAll('.payer-tag').forEach(tag=>{
+    tag.addEventListener('click', ()=>{
+      tag.classList.toggle('active');
+    });
+  });
+  // 默认第一个选中
+  const first = $('payerTags').querySelector('.payer-tag');
+  if(first) first.classList.add('active');
+}
+$('btnAddEntry').addEventListener('click', async ()=>{
+  const payer = $('entryPayer').value;
+  const cat = $('entryCat').value;
+  const amt = parseFloat($('entryAmt').value);
+  const note = $('entryNote').value.trim();
+  if(!(amt>0)){ toast('请输入金额'); return; }
+  try{
+    await api('/api/entries','POST',{activity_id:state.current.id, payer, category:cat, amount:amt, note});
+    $('entryAmt').value=''; $('entryNote').value='';
+    toast('✅ 已记 ¥'+amt.toFixed(2));
+    await openActivity(state.current.id);
+  }catch(e){ toast('记失败: '+e.message); }
+});
+function renderEntries(){
+  $('entryCount').textContent = currentEntries.length;
+  const total = currentEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  $('entryTotal').textContent = '¥'+total.toFixed(2);
+  if(!currentEntries.length){ $('entryList').innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:8px">还没有记录</div>'; return; }
+  $('entryList').innerHTML = currentEntries.slice().reverse().map(e=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px">
+      <div>
+        <span style="margin-right:6px">${CATS[e.category]||'📦'}</span>
+        <b>${esc(e.payer)}</b>
+        ${e.note?`<span style="color:var(--ink3);font-size:12px;margin-left:6px">${esc(e.note)}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span>¥${Number(e.amount).toFixed(2)}</span>
+        <button class="del" onclick="delEntry('${e.id}')">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+async function delEntry(id){
+  if(!confirm('删除这笔？')) return;
+  try{ await api('/api/entries/'+id,'DELETE'); toast('已删除'); await openActivity(state.current.id); }
+  catch(e){ toast('删除失败'); }
+}
+
+/* ============ 算账 ============ */
+$('btnSettle').addEventListener('click', ()=>{
+  if(currentEntries.length < 2){ toast('至少 2 笔才能算账'); return; }
+  const payers = state.payers;
+  const total = currentEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  const per = total / payers.length;
+  // 每家实付
+  const paid = {};
+  payers.forEach(p=>paid[p]=0);
+  currentEntries.forEach(e=>{ paid[e.payer] = (paid[e.payer]||0) + Number(e.amount||0); });
+  // 每家净结余: 应出 - 实付（正=别人欠他，负=他欠别人）
+  const net = {};
+  payers.forEach(p=>net[p] = per - (paid[p]||0));
+
+  $('resTotal').textContent = '¥'+total.toFixed(2);
+  $('resFamilies').textContent = payers.length;
+  $('resPer').textContent = '¥'+per.toFixed(2);
+
+  // 结算方案（最少转账：贪心）
+  const creditors = payers.filter(p=>net[p] > 0.005).map(p=>({p, v:net[p]}));
+  const debtors   = payers.filter(p=>net[p] < -0.005).map(p=>({p, v:-net[p]}));
+  creditors.sort((a,b)=>b.v-a.v);
+  debtors.sort((a,b)=>b.v-a.v);
+  const transfers = [];
+  let i=0,j=0;
+  while(i<creditors.length && j<debtors.length){
+    const amt = Math.min(creditors[i].v, debtors[j].v);
+    if(amt > 0.005) transfers.push({from:debtors[j].p, to:creditors[i].p, amt});
+    creditors[i].v -= amt; debtors[j].v -= amt;
+    if(creditors[i].v < 0.005) i++;
+    if(debtors[j].v < 0.005) j++;
+  }
+  $('resTransfers').textContent = transfers.length;
+
+  // 每家实付表
+  $('payerSums').innerHTML = payers.map(p=>{
+    const d = net[p];
+    const cls = d >= 0 ? 'good' : 'bad';
+    const txt = d >= 0 ? `多付 ¥${d.toFixed(2)}（别人欠你）` : `少付 ¥${Math.abs(d).toFixed(2)}（你欠别人）`;
+    return `<div class="payer-sum"><span>${esc(p)} <span style="color:var(--ink3);font-size:12px">实付 ¥${(paid[p]||0).toFixed(2)}</span></span>
+      <span class="delta ${cls}">${txt}</span></div>`;
+  }).join('');
+
+  // 结算列表
+  $('settleList').innerHTML = transfers.length ? transfers.map(t=>
+    `<div class="settle-item"><span>${esc(t.from)} → ${esc(t.to)}</span><span class="amt">¥${t.amt.toFixed(2)}</span></div>`
+  ).join('') : '<div style="color:var(--good);text-align:center;padding:8px">✅ 账已平，无需转账</div>';
+
+  // 微信文案
+  buildWechat(payers, paid, per, total, transfers);
+  $('settleResult').classList.remove('hidden');
+});
+
+function buildWechat(payers, paid, per, total, transfers){
+  const name = state.current.name;
+  const lines = [];
+  lines.push(`【${name} AA 结算】`);
+  lines.push('');
+  lines.push(`总支出：¥${total.toFixed(2)}`);
+  lines.push(`${payers.length} 家均分，每家应出：¥${per.toFixed(2)}`);
+  lines.push('');
+  lines.push('各家实付：');
+  payers.forEach(p=>{
+    lines.push(`· ${p}：¥${(paid[p]||0).toFixed(2)}${(paid[p]||0) - per >= 0.005 ? '（多付）' : (paid[p]||0) - per <= -0.005 ? '（少付）' : ''}`);
+  });
+  if(transfers.length){
+    lines.push('');
+    lines.push('结算方案：');
+    transfers.forEach(t=>{
+      lines.push(`· ${t.from} → ${t.to}：¥${t.amt.toFixed(2)}`);
+    });
+    lines.push('');
+    lines.push(`共 ${transfers.length} 笔转账，转完即清 ✅`);
+  } else {
+    lines.push('');
+    lines.push('账已平，无需转账 ✅');
+  }
+  $('wechatText').textContent = lines.join('\n');
+}
+$('btnCopy').addEventListener('click', async ()=>{
+  const text = $('wechatText').textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('✅ 已复制，去微信粘贴');
+  }catch(e){
+    // 降级
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    toast('✅ 已复制，去微信粘贴');
+  }
+});
+
+/* ============ 启动 ============ */
+(async function init(){
+  const params = new URLSearchParams(location.search);
+  const aid = params.get('a');
+  if(aid){ openActivity(aid); }
+  else { loadActivities(); }
+})();
+</script>
+</body>
+</html>
