@@ -1439,6 +1439,7 @@ submitEl.addEventListener('click',()=>{
     amount:a, item:itemName, cat, pay};
   const arr=loadEntries();arr.push(entry);saveEntries(arr);
   itemEl.value='';
+  amountEl.value='';  /* v14.1:提交后清空金额框,避免残留 */
   _lastText = '';
   _lastAmount = '';
     toast(`✓ ${itemName} ¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
