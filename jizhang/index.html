@@ -117,6 +117,60 @@
     transition:all .15s}
   .open-records-btn:active{transform:scale(.99);background:rgba(232,182,96,.1)}
 
+  /* v13.6:归档 + 月度账单 */
+  .home-actions{display:flex;gap:10px;margin-bottom:14px}
+  .home-actions .open-records-btn{flex:1;margin-bottom:0}
+  .archive-btn{padding:16px;background:transparent;border:1px dashed var(--accent);
+    border-radius:16px;color:var(--accent);font-size:14px;font-weight:600;
+    cursor:pointer;transition:all .15s;white-space:nowrap}
+  .archive-btn:active{background:rgba(232,182,96,.1);transform:scale(.99)}
+  .archived-tip{display:block;text-align:center;color:var(--ink-3);font-size:11px;
+    margin:-8px 0 14px}
+  .monthly-grid{display:flex;flex-direction:column;gap:12px;padding:16px}
+  .monthly-card{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;
+    padding:16px;cursor:pointer;transition:all .15s}
+  .monthly-card:active{transform:scale(.99);border-color:var(--accent)}
+  .monthly-card .mc-head{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px}
+  .monthly-card .mc-name{font-size:18px;font-weight:700;color:var(--ink)}
+  .monthly-card .mc-date{font-size:11px;color:var(--ink-3)}
+  .monthly-card .mc-row{display:flex;justify-content:space-between;padding:6px 0;
+    border-bottom:1px solid var(--line);font-size:14px}
+  .monthly-card .mc-row:last-child{border-bottom:none}
+  .monthly-card .mc-row .l{color:var(--ink-2)}
+  .monthly-card .mc-row .v{color:var(--ink);font-weight:600}
+  .monthly-card .mc-actions{display:flex;gap:8px;margin-top:10px}
+  .monthly-card .mc-actions button{flex:1;padding:8px;font-size:12px;
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    color:var(--ink-2);cursor:pointer}
+  .monthly-card .mc-actions button:hover{color:var(--accent);border-color:var(--accent)}
+  .monthly-empty{padding:60px 20px;text-align:center;color:var(--ink-3);font-size:14px}
+  .tab-bar{display:flex;gap:6px;margin-bottom:14px;background:var(--bg-2);
+    border:1px solid var(--line);border-radius:12px;padding:4px}
+  .tab-bar button{flex:1;padding:10px;background:transparent;border:none;
+    color:var(--ink-2);font-size:14px;font-weight:600;cursor:pointer;
+    border-radius:8px;transition:all .15s}
+  .tab-bar button.active{background:var(--accent);color:#000}
+  .compare-row{display:flex;justify-content:space-between;align-items:center;
+    padding:14px;background:var(--bg-2);border:1px solid var(--line);
+    border-radius:12px;margin-bottom:10px}
+  .compare-row .cr-label{font-size:13px;color:var(--ink-2)}
+  .compare-row .cr-val{font-size:16px;font-weight:700;color:var(--ink)}
+  .compare-row .cr-delta{font-size:12px;padding:3px 8px;border-radius:6px;
+    margin-left:8px;font-weight:600}
+  .compare-row .cr-delta.up{background:rgba(231,76,60,.15);color:var(--bad)}
+  .compare-row .cr-delta.down{background:rgba(46,204,113,.15);color:var(--good)}
+  .compare-row .cr-delta.flat{background:var(--bg);color:var(--ink-3)}
+  .readonly-entry{background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;
+    align-items:center}
+  .readonly-entry .re-l{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+  .readonly-entry .re-name{font-size:14px;color:var(--ink);font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .readonly-entry .re-meta{font-size:11px;color:var(--ink-3)}
+  .readonly-entry .re-r{font-size:16px;font-weight:700;color:var(--ink)}
+  .readonly-entry.income .re-r{color:var(--good)}
+
   .recent{background:var(--bg-2);border:1px solid var(--line);
     border-radius:18px;padding:16px;flex:1;overflow-y:auto;
     max-height:36vh}
@@ -504,6 +558,12 @@
 
 <button class="open-records-btn" id="openRecords" type="button">📋 查看明细 ›</button>
 
+<div class="home-actions" style="margin-top:14px">
+  <button class="open-records-btn" id="openMonthly" type="button">📊 月度账单 ›</button>
+  <button class="archive-btn" id="archiveBtn" type="button">📦 归档</button>
+</div>
+<small class="archived-tip" id="archivedTip" style="display:none"></small>
+
 </div><!-- /view-home -->
 
 <!-- ============ v7 二级页：明细全屏 ============ -->
@@ -543,6 +603,73 @@
   <div id="filterBar" style="display:none"></div>
 
   <div class="records-list" id="recordsList"></div>
+</div>
+
+<!-- ============ v13.6:月度账单一级页 ============ -->
+<div class="view view-monthly" id="viewMonthly">
+  <div class="records-top">
+    <button class="back" id="monthlyBack" type="button">‹</button>
+    <div class="title">📊 月度账单</div>
+    <div style="width:32px"></div>
+  </div>
+  <div id="monthlyGrid" class="monthly-grid"></div>
+</div>
+
+<!-- ============ v13.6:月度账单二级页（明细/对比） ============ -->
+<div class="view view-monthly-detail" id="viewMonthlyDetail">
+  <div class="records-top">
+    <button class="back" id="monthlyDetailBack" type="button">‹</button>
+    <div class="title" id="monthlyDetailTitle">账单详情</div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="summary-bar" style="margin-bottom:14px">
+    <div class="summary-cell"><div class="l">收入</div><div class="v" id="mdIncome">¥0</div></div>
+    <div class="summary-cell"><div class="l">支出</div><div class="v" id="mdExpense">¥0</div></div>
+    <div class="summary-cell"><div class="l">净结余</div><div class="v" id="mdNet">¥0</div></div>
+  </div>
+  <div class="summary-bar" style="margin-bottom:14px">
+    <div class="summary-cell"><div class="l">笔数</div><div class="v" id="mdCount">0</div></div>
+    <div class="summary-cell"><div class="l">日均</div><div class="v" id="mdDaily">¥0</div></div>
+    <div class="summary-cell"><div class="l">跨度</div><div class="v" id="mdSpan" style="font-size:13px">—</div></div>
+  </div>
+  <div class="tab-bar">
+    <button id="tabDetail" class="active" type="button">📋 明细</button>
+    <button id="tabCompare" type="button">📈 对比</button>
+  </div>
+  <div id="mdTabDetail"></div>
+  <div id="mdTabCompare" style="display:none"></div>
+</div>
+
+<!-- ============ v13.6:归档弹层（选日期范围） ============ -->
+<div class="edit-modal" id="archiveModal">
+  <div class="edit-card">
+    <h3>📦 归档为月度账单</h3>
+    <p style="color:var(--ink-3);font-size:12px;margin:0 0 14px">
+      选一个日期范围,把范围内的所有记录归档为一张月度账单。归档后该范围会从当前明细中移除。
+    </p>
+    <label>起始日期</label>
+    <input id="archiveFrom" type="date" style="width:100%;padding:10px;
+      background:var(--bg);border:1px solid var(--line);border-radius:8px;
+      color:var(--ink);font-size:14px">
+    <label style="margin-top:10px;display:block">结束日期</label>
+    <input id="archiveTo" type="date" style="width:100%;padding:10px;
+      background:var(--bg);border:1px solid var(--line);border-radius:8px;
+      color:var(--ink);font-size:14px">
+    <div id="archivePreview" style="margin-top:14px;padding:12px;
+      background:var(--bg);border:1px solid var(--line);border-radius:10px;
+      font-size:13px;color:var(--ink-2);line-height:1.7"></div>
+    <label style="margin-top:14px;display:block">月份标签（用于显示）</label>
+    <input id="archiveLabel" type="text" placeholder="例如：7月账"
+      style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--line);
+      border-radius:8px;color:var(--ink);font-size:14px">
+    <p style="color:var(--bad);font-size:12px;margin:14px 0 0">
+      ⚠️ 归档后该范围的明细将从当前账本移除（不可撤销，安全网见底部说明）
+    </p>
+    <div class="actions">
+      <button class="cancel" id="archiveCancel">取消</button>
+      <button class="ok" id="archiveConfirm">✅ 归档并清空</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1349,6 +1476,380 @@ function goHome(){
 }
 $('openRecords').addEventListener('click',goRecords);
 $('recordsBack').addEventListener('click',goHome);
+
+/* ============ v13.6:归档为月度账单 ============ */
+const MONTHLY_KEY = () => K('monthly');
+const MONTHLY_SNAPSHOT_KEY = () => K('monthlySnapshot');
+
+function loadMonthly(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(MONTHLY_KEY())||'[]');
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function saveMonthly(arr){
+  if(!Array.isArray(arr)) return;
+  localStorage.setItem(MONTHLY_KEY(), JSON.stringify(arr));
+}
+function saveMonthlySnapshot(removedArr){
+  try{
+    const snap = JSON.parse(localStorage.getItem(MONTHLY_SNAPSHOT_KEY())||'{}');
+    const now = Date.now();
+    Object.keys(snap).forEach(k=>{
+      if(now - (snap[k].ts||0) > 30*24*3600*1000) delete snap[k];
+    });
+    snap['snap_'+now] = { ts:now, entries: removedArr };
+    localStorage.setItem(MONTHLY_SNAPSHOT_KEY(), JSON.stringify(snap));
+  }catch(e){}
+}
+
+function fmtMD(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if(!m) return s;
+  return `${parseInt(m[2],10)}/${parseInt(m[3],10)}`;
+}
+function todayStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function earliestEntryDate(){
+  const arr = loadEntries();
+  if(!arr.length) return todayStr();
+  let min = Infinity;
+  arr.forEach(e=>{ const t = new Date(e.ts).getTime(); if(t<min) min=t; });
+  const d = new Date(min); const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function entriesInRange(from, to){
+  const a = new Date(from+'T00:00:00').getTime();
+  const b = new Date(to+'T23:59:59').getTime();
+  return loadEntries().filter(e=>{
+    const t = new Date(e.ts).getTime();
+    return t>=a && t<=b;
+  });
+}
+function calcSummary(records){
+  let income=0, expense=0;
+  records.forEach(e=>{
+    const amt = Number(e.amount||0);
+    if(amt>=0) expense += amt;
+    else income += Math.abs(amt);
+  });
+  const count = records.length;
+  const ts = records.map(e=>new Date(e.ts).getTime());
+  const span = ts.length ? Math.max(1, Math.round((Math.max(...ts)-Math.min(...ts))/86400000)+1) : 0;
+  return { income, expense, net: income-expense, count, dailyAvg: span ? expense/span : 0, span };
+}
+
+function openArchiveModal(){
+  const modal = $('archiveModal');
+  const from = $('archiveFrom'), to = $('archiveTo');
+  from.value = earliestEntryDate();
+  to.value = todayStr();
+  $('archiveLabel').value = '';
+  refreshArchivePreview();
+  modal.classList.add('open');
+}
+function refreshArchivePreview(){
+  const from = $('archiveFrom').value;
+  const to = $('archiveTo').value;
+  const preview = $('archivePreview');
+  if(!from || !to){
+    preview.innerHTML = '<span style="color:var(--ink-3)">请选择起止日期</span>';
+    return;
+  }
+  if(new Date(from) > new Date(to)){
+    preview.innerHTML = '<span style="color:var(--bad)">⚠️ 起始日期不能晚于结束日期</span>';
+    return;
+  }
+  const records = entriesInRange(from, to);
+  const s = calcSummary(records);
+  if(!records.length){
+    preview.innerHTML = `<span style="color:var(--ink-3)">该范围内<b style="color:var(--ink)">无记录</b></span>`;
+    return;
+  }
+  preview.innerHTML = `
+    <div style="display:flex;justify-content:space-between"><span>日期范围</span><b>${fmtMD(from)} ~ ${fmtMD(to)}</b></div>
+    <div style="display:flex;justify-content:space-between"><span>笔数</span><b>${s.count}</b></div>
+    <div style="display:flex;justify-content:space-between"><span>收入</span><b style="color:var(--good)">¥${fmtMoney(s.income)}</b></div>
+    <div style="display:flex;justify-content:space-between"><span>支出</span><b style="color:var(--bad)">¥${fmtMoney(s.expense)}</b></div>
+    <div style="display:flex;justify-content:space-between"><span>净结余</span><b>¥${fmtMoney(s.net)}</b></div>
+  `;
+  if(!$('archiveLabel').value){
+    const d = new Date(from+'T00:00:00');
+    $('archiveLabel').value = `${d.getMonth()+1}月账`;
+  }
+}
+function confirmArchive(){
+  const from = $('archiveFrom').value, to = $('archiveTo').value;
+  const label = ($('archiveLabel').value || '').trim();
+  if(!from || !to) return toast('⚠️ 请选择起止日期');
+  if(new Date(from) > new Date(to)) return toast('⚠️ 起始日期不能晚于结束日期');
+  const records = entriesInRange(from, to);
+  if(!records.length) return toast('⚠️ 该范围内没有记录');
+  if(!confirm(`确认将 ${records.length} 笔记录归档为「${label || '月度账单'}」?\n归档后将从当前账本删除该范围的明细。`)) return;
+
+  const s = calcSummary(records);
+  const monthly = loadMonthly();
+  monthly.push({
+    id: 'm_'+Date.now(),
+    periodName: label || `${new Date(from).getMonth()+1}月账`,
+    startDate: from,
+    endDate: to,
+    income: s.income,
+    expense: s.expense,
+    net: s.net,
+    count: s.count,
+    dailyAvg: s.dailyAvg,
+    span: s.span,
+    records: records,
+    createdAt: new Date().toISOString()
+  });
+  saveMonthly(monthly);
+
+  const all = loadEntries();
+  const tsSet = new Set(records.map(e=>e.id));
+  const remain = all.filter(e=>!tsSet.has(e.id));
+  saveMonthlySnapshot(records);
+  localStorage.setItem(STORE_KEY(), JSON.stringify(remain));
+  if(remain.length > 0){
+    try{ localStorage.setItem(LKG_KEY(), JSON.stringify(remain)); }catch(e){}
+  }
+
+  $('archiveModal').classList.remove('open');
+  toast(`✅ 已归档「${label}」 共 ${records.length} 笔`);
+  renderAll();
+  renderMonthlyTip();
+}
+
+function renderMonthlyTip(){
+  const tip = $('archivedTip');
+  if(!tip) return;
+  const m = loadMonthly();
+  if(m.length){
+    tip.style.display = 'block';
+    tip.textContent = `📦 已归档 ${m.length} 个月账 · 点首页「📊 月度账单」查看`;
+  } else {
+    tip.style.display = 'none';
+  }
+}
+
+/* ============ v13.6:月度账单 一级页 ============ */
+function renderMonthlyGrid(){
+  const grid = $('monthlyGrid');
+  const m = loadMonthly().sort((a,b)=> b.startDate.localeCompare(a.startDate));
+  if(!m.length){
+    grid.innerHTML = `<div class="monthly-empty">还没有月度账单归档<br><br>回到首页点「📦 归档」生成第一张</div>`;
+    return;
+  }
+  grid.innerHTML = m.map(item => `
+    <div class="monthly-card" data-id="${item.id}">
+      <div class="mc-head">
+        <div class="mc-name">${escapeHtml(item.periodName)}</div>
+        <div class="mc-date">${fmtMD(item.startDate)} ~ ${fmtMD(item.endDate)}</div>
+      </div>
+      <div class="mc-row"><span class="l">收入</span><span class="v" style="color:var(--good)">¥${fmtMoney(item.income)}</span></div>
+      <div class="mc-row"><span class="l">支出</span><span class="v" style="color:var(--bad)">¥${fmtMoney(item.expense)}</span></div>
+      <div class="mc-row"><span class="l">净结余</span><span class="v">¥${fmtMoney(item.net)}</span></div>
+      <div class="mc-row"><span class="l">笔数</span><span class="v">${item.count}</span></div>
+      <div class="mc-actions">
+        <button data-act="exportJson" data-id="${item.id}">⬇ JSON</button>
+        <button data-act="exportCsv" data-id="${item.id}">⬇ CSV</button>
+        <button data-act="delete" data-id="${item.id}" style="color:var(--bad)">🗑 删除</button>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.monthly-card').forEach(card=>{
+    card.addEventListener('click', e=>{
+      if(e.target.tagName==='BUTTON') return;
+      const id = card.dataset.id;
+      openMonthlyDetail(id);
+    });
+  });
+  grid.querySelectorAll('button[data-act]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const act = btn.dataset.act;
+      const item = loadMonthly().find(x=>x.id===id);
+      if(!item) return;
+      if(act==='exportJson') exportMonthlyItem(item, 'json');
+      else if(act==='exportCsv') exportMonthlyItem(item, 'csv');
+      else if(act==='delete') deleteMonthlyItem(id);
+    });
+  });
+}
+
+function openMonthly(){
+  renderMonthlyGrid();
+  viewHomeEl.classList.remove('active');
+  viewRecordsEl.classList.remove('active');
+  const vm = $('viewMonthly'); vm.classList.add('active');
+}
+function closeMonthly(){
+  $('viewMonthly').classList.remove('active');
+  viewHomeEl.classList.add('active');
+  renderMonthlyTip();
+  renderAll();
+}
+
+let currentMonthlyId = null;
+function openMonthlyDetail(id){
+  const item = loadMonthly().find(x=>x.id===id);
+  if(!item) return;
+  currentMonthlyId = id;
+  $('monthlyDetailTitle').textContent = item.periodName;
+  $('mdIncome').textContent = '¥'+fmtMoney(item.income);
+  $('mdExpense').textContent = '¥'+fmtMoney(item.expense);
+  $('mdNet').textContent = '¥'+fmtMoney(item.net);
+  $('mdCount').textContent = item.count;
+  $('mdDaily').textContent = '¥'+fmtMoney(item.dailyAvg);
+  $('mdSpan').textContent = `${item.span}天`;
+  const sorted = item.records.slice().sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+  $('mdTabDetail').innerHTML = sorted.map(e=>{
+    const d = new Date(e.ts);
+    const p=n=>String(n).padStart(2,'0');
+    const income = Number(e.amount||0) < 0;
+    return `
+    <div class="readonly-entry ${income?'income':''}">
+      <div class="re-l">
+        <div class="re-name">${escapeHtml(e.item||'(未命名)')}</div>
+        <div class="re-meta">${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())} · ${escapeHtml(e.cat)} ${e.pay?'· '+escapeHtml(e.pay):''}</div>
+      </div>
+      <div class="re-r">${income?'+':''}¥${fmtMoney(Math.abs(Number(e.amount||0)))}</div>
+    </div>`;
+  }).join('');
+  renderCompare(item);
+  $('tabDetail').classList.add('active');
+  $('tabCompare').classList.remove('active');
+  $('mdTabDetail').style.display = '';
+  $('mdTabCompare').style.display = 'none';
+  $('viewMonthly').classList.remove('active');
+  $('viewMonthlyDetail').classList.add('active');
+}
+function closeMonthlyDetail(){
+  $('viewMonthlyDetail').classList.remove('active');
+  $('viewMonthly').classList.add('active');
+  currentMonthlyId = null;
+}
+function renderCompare(currentItem){
+  const all = loadMonthly();
+  const others = all.filter(x=>x.id !== currentItem.id);
+  const sorted = others.sort((a,b)=> b.startDate.localeCompare(a.startDate)).slice(0,3);
+  if(!sorted.length){
+    $('mdTabCompare').innerHTML = `<div class="monthly-empty">暂无历史月可对比<br><br>先归档更多月账单</div>`;
+    return;
+  }
+  const avg = (key) => sorted.reduce((s,x)=>s+x[key],0) / sorted.length;
+  const avgCount = avg('count');
+  const rows = [
+    { label:'收入', cur:currentItem.income, hist:avg('income'), fmt:v=>fmtMoney(v) },
+    { label:'支出', cur:currentItem.expense, hist:avg('expense'), fmt:v=>fmtMoney(v) },
+    { label:'净结余', cur:currentItem.net, hist:avg('net'), fmt:v=>fmtMoney(v) },
+    { label:'笔数', cur:currentItem.count, hist:avgCount, fmt:v=>String(Math.round(v)), integer:true },
+    { label:'日均支出', cur:currentItem.dailyAvg, hist:avg('dailyAvg'), fmt:v=>fmtMoney(v) }
+  ];
+  $('mdTabCompare').innerHTML = `<div style="font-size:11px;color:var(--ink-3);margin-bottom:10px">
+    对比基准:近 ${sorted.length} 个历史月均值 · ${sorted.map(x=>x.periodName).join('、')}
+  </div>` + rows.map(r=>{
+    const pct = r.hist === 0 ? 0 : (r.cur - r.hist) / Math.abs(r.hist) * 100;
+    const cls = r.integer ? Math.abs(pct) < 1 : Math.abs(pct) < 0.5;
+    const dir = cls ? 'flat' : (pct > 0 ? 'up' : 'down');
+    const arrow = cls ? '—' : (pct > 0 ? '↑' : '↓');
+    const sign = pct > 0 ? '+' : '';
+    return `<div class="compare-row">
+      <div class="cr-label">${r.label}</div>
+      <div style="text-align:right">
+        <span class="cr-val">${r.fmt(r.cur)}</span>
+        <span class="cr-delta ${dir}">${arrow} ${sign}${pct.toFixed(1)}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ v13.6:逐月导出 JSON / CSV ============ */
+function exportMonthlyItem(item, fmt){
+  const d = new Date();
+  const ds = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const ver = nextExportVer();
+  if(fmt === 'json'){
+    const data = {
+      exportVer: ver,
+      exported_at: new Date().toISOString(),
+      periodName: item.periodName,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      summary: { income: item.income, expense: item.expense, net: item.net, count: item.count, dailyAvg: item.dailyAvg, span: item.span },
+      records: item.records
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `family-ledger-${ds}-v${ver}.json`;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},100);
+    toast(`✅ 已导出 ${item.periodName} (v${ver})`);
+  } else {
+    const csv = toCSVPeriod(item);
+    downloadCSV(`family-ledger-${ds}-v${ver}.csv`, csv);
+    toast(`✅ 已导出 ${item.periodName} (v${ver})`);
+  }
+}
+function toCSVPeriod(item){
+  const BOM = '\uFEFF';
+  const header = ['月份标签','日期','时间','分类','项目','支付方式','金额'];
+  const rows = item.records.slice().sort((a,b)=>a.ts<b.ts?-1:1).map(e=>{
+    const d = new Date(e.ts);
+    const p=n=>String(n).padStart(2,'0');
+    const income = Number(e.amount||0) < 0;
+    return [
+      item.periodName,
+      `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
+      `${p(d.getHours())}:${p(d.getMinutes())}`,
+      e.cat, e.item, e.pay||'', (income?'-':'')+Math.abs(Number(e.amount)).toFixed(2)
+    ];
+  });
+  rows.push([]);
+  rows.push(['','合计','','收入','','', item.income.toFixed(2)]);
+  rows.push(['','合计','','支出','','', item.expense.toFixed(2)]);
+  rows.push(['','合计','','净结余','','', item.net.toFixed(2)]);
+  const esc=v=>{const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  return BOM + [header, ...rows].map(r=>r.map(esc).join(',')).join('\n');
+}
+function deleteMonthlyItem(id){
+  const item = loadMonthly().find(x=>x.id===id);
+  if(!item) return;
+  if(!confirm(`确认删除「${item.periodName}」?\n此操作不可撤销(明细已在归档时移除)。`)) return;
+  saveMonthly(loadMonthly().filter(x=>x.id!==id));
+  renderMonthlyGrid();
+  renderMonthlyTip();
+  toast('✅ 已删除');
+}
+
+/* ============ v13.6:事件绑定 ============ */
+$('archiveBtn').addEventListener('click', openArchiveModal);
+$('archiveCancel').addEventListener('click', ()=> $('archiveModal').classList.remove('open'));
+$('archiveConfirm').addEventListener('click', confirmArchive);
+$('archiveFrom').addEventListener('change', refreshArchivePreview);
+$('archiveTo').addEventListener('change', refreshArchivePreview);
+$('openMonthly').addEventListener('click', openMonthly);
+$('monthlyBack').addEventListener('click', closeMonthly);
+$('monthlyDetailBack').addEventListener('click', closeMonthlyDetail);
+$('tabDetail').addEventListener('click', ()=>{
+  $('tabDetail').classList.add('active');
+  $('tabCompare').classList.remove('active');
+  $('mdTabDetail').style.display = '';
+  $('mdTabCompare').style.display = 'none';
+});
+$('tabCompare').addEventListener('click', ()=>{
+  $('tabCompare').classList.add('active');
+  $('tabDetail').classList.remove('active');
+  $('mdTabDetail').style.display = 'none';
+  $('mdTabCompare').style.display = '';
+  if(currentMonthlyId){
+    const item = loadMonthly().find(x=>x.id===currentMonthlyId);
+    if(item) renderCompare(item);
+  }
+});
+/* v13.6:页面加载时检查是否已有归档,有则显示首页提示 */
+renderMonthlyTip();
 $('prevMR').addEventListener('click',()=>{
   let m=viewYM.m-1,y=viewYM.y;if(m<0){m=11;y--;}setViewYM(y,m);
   monthLabelR.textContent = monthEl.textContent;
