@@ -189,6 +189,7 @@
   .entry .right{display:flex;align-items:center;gap:6px}
   .entry .price{font-size:16px;font-weight:600;color:var(--ink);
     font-variant-numeric:tabular-nums;min-width:68px;text-align:right}
+  .entry .price.income-p{color:var(--good)}
   .entry .icon-btn{background:transparent;border:none;color:var(--ink-3);
     font-size:16px;padding:4px 6px;cursor:pointer;line-height:1;
     width:30px;height:30px;border-radius:8px}
@@ -886,6 +887,7 @@ const DEFAULT_CATS = [
   {id:'工作需求', icon:'💼'},
   {id:'杂', icon:'🗂️'},
   {id:'转账', icon:'🔁'},
+  {id:'收入', icon:'💰'},
 ];
 const DEFAULT_KW = {
   '固定住房':['房贷','物业','车位','房租'],
@@ -899,8 +901,15 @@ const DEFAULT_KW = {
   '医疗健康':['医院','挂号','门诊','急诊','看病','买药','药店','药房','体检','化验','检查','牙科','口腔','补牙','拔牙','洗牙','疫苗','打针','输液','维生素','钙片','感冒药','创可贴','口罩','医疗','医生','诊所','理疗','中药','药'],
   '工作需求':['工作','业务','办公','文具','打印','AI','Ai','订阅','工具','Hermes','快递','运费','发票'],
   '杂':['其他','杂','杂费'],
-  '转账':['信用卡','还款','还信用卡','转账','存款','存钱','储蓄','还款冲销','退款','返现']
+  '转账':['信用卡','还款','还信用卡','转账','存款','存钱','储蓄','还款冲销']
 };
+
+/* v14.3:收入识别关键词 —— 命中任一即记为收入（金额存负数） */
+const INCOME_KW = [
+  '报销','报销款','退款','退钱','退回','返还','返现','工资','薪资','发工资',
+  '到账','进账','收入','入账','收款','收到','红包','利息','奖金','补贴','津贴',
+  '分红','佣金','劳务费','稿费','加薪','涨薪','提成','卖二手','转卖','闲鱼'
+];
 
 // 支付方式（默认 + 关键词）
 const DEFAULT_PAYS = [
@@ -1191,6 +1200,13 @@ const budgetRemain=$('budgetRemain'), budgetSpent=$('budgetSpent'),
 /* ========== 智能归类 + 支付方式识别 =========== */
 /* v13:猜分类时跳过"杂"的主动匹配(杂只兜底,不抢词);
    否则旧配置里 ETC->杂 这类默认词会永远把 ETC 归进杂 */
+/* v14.3:判断文本是否为收入（报销/退款/工资/到账等） */
+function isIncomeText(text){
+  if(!text) return false;
+  const t = text.toLowerCase();
+  return INCOME_KW.some(kw => t.includes(kw));
+}
+
 function guessCat(text){
   if(!text) return null;
   const t = text.toLowerCase();
@@ -1267,11 +1283,18 @@ function updateAutoCat(){
     return;
   }
   // 组合显示
+  const isInc = isIncomeText(text);
   const parts = [];
-  if(amt>0) parts.push(`¥${amt}`);
-  if(cat){
-    const c = CATS.find(x=>x.id===cat) || {icon:'❓'};
-    parts.push(`${c.icon} ${cat}`);
+  if(amt>0){
+    parts.push(isInc
+      ? `<b style="color:var(--good)">+¥${amt}</b>`
+      : `¥${amt}`);
+  }
+  /* v14.3:收入时预览强制显示 💰 收入 */
+  const previewCat = isInc ? '收入' : cat;
+  if(previewCat){
+    const c = CATS.find(x=>x.id===previewCat) || {icon:'❓'};
+    parts.push(`${c.icon} ${previewCat}`);
   } else if(amt>0) {
     parts.push('→ 默认"杂"');
   }
@@ -1288,7 +1311,7 @@ function updateAutoCat(){
   if(amt>0){
     autoCat.classList.remove('unknown');
     autoCat.classList.add('has-data');
-    autoCatHint.textContent='（不对点 ✎ 改）';
+    autoCatHint.textContent = isInc ? '💰 收入 ·（不对点 ✎ 改）' : '（不对点 ✎ 改）';
   } else {
     autoCat.classList.remove('has-data');
     autoCatHint.textContent='（继续说金额）';
@@ -1450,17 +1473,19 @@ submitEl.addEventListener('click',()=>{
     toast('没识别到金额，例如"午餐18元 支付宝"');
     return;
   }
-  const cat = guessCat(text) || '杂';
+  /* v14.3:收入识别 —— 报销/退款/工资/到账等 → 金额存负数 */
+  const isInc = isIncomeText(text);
+  const cat = isInc ? '收入' : (guessCat(text) || '杂');
   const pay = guessPay(text) || '';
   const itemName = stripAll(text) || '(未填备注)';
   const entry = {id:genId(),ts:new Date().toISOString(),
-    amount:a, item:itemName, cat, pay};
+    amount: isInc ? -a : a, item:itemName, cat, pay};
   const arr=loadEntries();arr.push(entry);saveEntries(arr);
   itemEl.value='';
   amountEl.value='';  /* v14.1:提交后清空金额框,避免残留 */
   _lastText = '';
   _lastAmount = '';
-    toast(`✓ ${itemName} ¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
+    toast(`${isInc?'💰 收入':'✓'} ${itemName} ${isInc?'+':''}¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
 });
 
 /* ========== 月份切换 =========== */
@@ -1971,7 +1996,7 @@ function renderRecords(){
             <div class="meta">${cat?cat.id:''} · ${fmtDate(e.ts)}</div>
           </div>
           <div class="right">
-            <div class="price">¥${Number(e.amount).toFixed(2)}</div>
+            <div class="price ${Number(e.amount)<0?'income-p':''}">${Number(e.amount)<0?'+':''}¥${Math.abs(Number(e.amount)).toFixed(2)}</div>
             <button class="icon-btn act-edit" aria-label="编辑">✎</button>
             <button class="icon-btn act-del" aria-label="删除">×</button>
           </div>
