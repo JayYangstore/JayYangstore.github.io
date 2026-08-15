@@ -299,9 +299,9 @@ $('btnSettle').addEventListener('click', ()=>{
   const paid = {};
   payers.forEach(p=>paid[p]=0);
   currentEntries.forEach(e=>{ paid[e.payer] = (paid[e.payer]||0) + Number(e.amount||0); });
-  // 每家净结余: 应出 - 实付（正=别人欠他，负=他欠别人）
+  // 每家净结余: 实付 - 应出（正=多付/别人欠他，负=少付/他欠别人）
   const net = {};
-  payers.forEach(p=>net[p] = per - (paid[p]||0));
+  payers.forEach(p=>net[p] = (paid[p]||0) - per);
 
   $('resTotal').textContent = '¥'+total.toFixed(2);
   $('resFamilies').textContent = payers.length;
