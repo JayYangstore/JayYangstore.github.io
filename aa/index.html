@@ -122,6 +122,10 @@ input:focus,select:focus{border-color:var(--accent)}
     </div>
     <div class="step" style="margin-top:8px"><b>1</b> 谁付的？选人</div>
     <div id="payerTags"></div>
+    <div class="row" style="margin-top:8px">
+      <input class="note" id="newPayerName" type="text" placeholder="添加家庭（如：老王）" maxlength="20">
+      <button class="btn ghost" id="btnAddPayer" style="margin:0;padding:10px 14px;width:auto">➕ 添加</button>
+    </div>
   </div>
 
   <div class="card">
@@ -263,6 +267,16 @@ $('btnAddEntry').addEventListener('click', async ()=>{
     toast('✅ 已记 ¥'+amt.toFixed(2));
     await openActivity(state.current.id);
   }catch(e){ toast('记失败: '+e.message); }
+});
+$('btnAddPayer').addEventListener('click', async ()=>{
+  const name = $('newPayerName').value.trim();
+  if(!name){ toast('请输入家庭名'); return; }
+  try{
+    await api('/api/activities/'+state.current.id+'/payers','POST',{name});
+    $('newPayerName').value='';
+    toast('✅ 已添加: '+name);
+    await openActivity(state.current.id);
+  }catch(e){ toast('添加失败: '+e.message); }
 });
 function renderEntries(){
   $('entryCount').textContent = currentEntries.length;
