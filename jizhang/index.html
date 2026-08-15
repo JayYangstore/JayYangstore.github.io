@@ -111,15 +111,7 @@
   .submit-btn:active{background:var(--accent-2);transform:scale(.99)}
   .submit-btn:disabled{opacity:.4}
 
-  .open-records-btn{width:100%;padding:18px;background:var(--bg-2);
-    border:1px solid var(--accent);border-radius:16px;color:var(--accent);
-    font-size:16px;font-weight:600;cursor:pointer;margin-bottom:14px;
-    transition:all .15s}
-  .open-records-btn:active{transform:scale(.99);background:rgba(232,182,96,.1)}
-
-  /* v13.6:归档 + 月度账单 */
-  .home-actions{display:flex;gap:10px;margin-bottom:14px}
-  .home-actions .open-records-btn{flex:1;margin-bottom:0}
+  /* v13.6:归档 + 月度账单(v14.2:已合并到 .home-cards 卡片) */
   .archive-btn{padding:16px;background:transparent;border:1px dashed var(--accent);
     border-radius:16px;color:var(--accent);font-size:14px;font-weight:600;
     cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -329,17 +321,33 @@
   .pay-summary{background:var(--bg-2);border:1px solid var(--line);
     border-radius:18px;padding:14px 16px;margin-bottom:14px;
     font-size:12px;color:var(--ink-3)}
-  .pay-summary h4{margin:0 0 10px;font-size:11px;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--ink-3);font-weight:500;
-    display:flex;justify-content:space-between;align-items:center}
+  .pay-summary h4{margin:0 0 12px;font-size:13px;font-weight:600;
+    color:var(--ink);display:flex;justify-content:space-between;
+    align-items:center}
+  .pay-summary h4 #payTotal{font-variant-numeric:tabular-nums;
+    color:var(--ink-2);font-weight:500}
   .pay-row{display:flex;justify-content:space-between;align-items:center;
     padding:7px 0;font-size:13px;color:var(--ink)}
   .pay-row .name{display:flex;align-items:center;gap:8px}
   .pay-row .bar{flex:1;margin:0 10px;height:4px;background:var(--bg);
-    border-radius:2px;overflow:hidden;max-width:120px}
+    border-radius:2px;overflow:hidden;max-width:160px}
   .pay-row .bar .f{height:100%;background:var(--accent);border-radius:2px}
   .pay-row .amt{font-variant-numeric:tabular-nums;font-weight:600;
     color:var(--ink);min-width:74px;text-align:right}
+
+  /* v14.2:首页三个入口卡（明细/归档/月度账单） */
+  .home-cards{display:grid;grid-template-columns:repeat(3,1fr);
+    gap:10px;margin-bottom:14px}
+  .home-card{background:var(--bg-2);border:1px solid var(--line);
+    border-radius:16px;padding:18px 8px 14px;color:var(--ink);
+    font-size:13px;font-weight:500;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    transition:all .15s;font-family:inherit}
+  .home-card .ic{font-size:30px;line-height:1}
+  .home-card .lb{font-size:13px;color:var(--ink-2)}
+  .home-card:active{transform:scale(.97);
+    background:rgba(232,182,96,.08);border-color:var(--accent)}
+  .home-card:active .lb{color:var(--accent)}
 
   @media (max-width:380px){
     .amount-input{font-size:54px}
@@ -406,7 +414,7 @@
     color:var(--ink);
     box-shadow:0 6px 20px rgba(31,45,61,.12), inset 0 1px 0 rgba(255,255,255,.8);
   }
-  .glass-theme .open-records-btn{
+  .glass-theme .home-card{
     background:rgba(255,255,255,.42);
     -webkit-backdrop-filter:blur(20px);
     backdrop-filter:blur(20px);
@@ -524,15 +532,7 @@
   </div>
 </div>
 
-<!-- 支付方式汇总（折叠） -->
-<div class="pay-summary" id="paySummary" style="display:none">
-  <h4>
-    <span>💳 支付方式</span>
-    <span id="payTotal" style="color:var(--ink-2)">合计 ¥0</span>
-  </h4>
-  <div id="payList"></div>
-</div>
-
+<!-- v14.2:支付方式汇总已挪到首页底部（在三个入口卡之后）。此处删除旧位置 -->
 <!-- 金额（自动从下方输入框识别） -->
 <div class="amount-card">
   <div class="label">金额</div>
@@ -556,13 +556,31 @@
 
 <button class="submit-btn" id="submit" disabled>点此提交</button>
 
-<button class="open-records-btn" id="openRecords" type="button">📋 查看明细 ›</button>
-
-<div class="home-actions" style="margin-top:14px">
-  <button class="open-records-btn" id="openMonthly" type="button">📊 月度账单 ›</button>
-  <button class="archive-btn" id="archiveBtn" type="button">📦 归档</button>
+<!-- v14.2:三个入口改成等宽小卡片横排 -->
+<div class="home-cards" id="homeCards">
+  <button class="home-card" id="openRecords" type="button">
+    <span class="ic">📋</span>
+    <span class="lb">明细</span>
+  </button>
+  <button class="home-card" id="archiveBtn" type="button">
+    <span class="ic">📦</span>
+    <span class="lb">归档</span>
+  </button>
+  <button class="home-card" id="openMonthly" type="button">
+    <span class="ic">📊</span>
+    <span class="lb">月度账单</span>
+  </button>
 </div>
 <small class="archived-tip" id="archivedTip" style="display:none"></small>
+
+<!-- v14.2:支付方式汇总挪到首页底部 -->
+<div class="pay-summary" id="paySummary" style="display:none">
+  <h4>
+    <span>支付方式汇总</span>
+    <span id="payTotal" style="color:var(--ink-2)">合计 ¥0</span>
+  </h4>
+  <div id="payList"></div>
+</div>
 
 </div><!-- /view-home -->
 
