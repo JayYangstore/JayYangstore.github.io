@@ -34,9 +34,13 @@ input:focus,select:focus{border-color:var(--accent)}
 .row .del{flex:0 0 34px;height:38px;border:none;background:transparent;color:var(--bad);
   font-size:18px;cursor:pointer;border-radius:8px}
 .row .del:active{background:rgba(231,76,60,.15)}
-.payer-tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:8px;
-  padding:5px 12px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;color:var(--ink2)}
+.payer-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;color:var(--ink2)}
 .payer-tag.active{border-color:var(--accent);color:var(--accent)}
+.payer-tag .pt-ops{display:inline-flex;gap:2px;margin-left:2px}
+.payer-tag .pt-ops span{font-size:11px;cursor:pointer;padding:2px 3px;border-radius:5px;opacity:.75;line-height:1}
+.payer-tag .pt-ops span:active{background:rgba(232,182,96,.2);opacity:1}
+.payer-tag .pt-del:active{background:rgba(231,76,60,.25)}
 .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .r-cell{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
 .r-cell .v{font-size:17px;font-weight:700;color:var(--ink)}
@@ -393,15 +397,55 @@ $('btnBack').addEventListener('click', ()=>{
 });
 function renderPayers(){
   $('entryPayer').innerHTML = state.payers.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
-  $('payerTags').innerHTML = state.payers.map(p=>`<span class="payer-tag" data-p="${esc(p)}">${esc(p)}</span>`).join('');
+  $('payerTags').innerHTML = state.payers.map(p=>`
+    <span class="payer-tag" data-p="${esc(p)}">
+      <span class="pt-name">${esc(p)}</span>
+      <span class="pt-ops">
+        <span class="pt-edit" data-p="${esc(p)}" title="改名">✏️</span>
+        <span class="pt-del" data-p="${esc(p)}" title="删除">🗑</span>
+      </span>
+    </span>
+  `).join('');
+
+  // 点击标签主体 = 选中该家庭 = 同步下拉框
   $('payerTags').querySelectorAll('.payer-tag').forEach(tag=>{
-    tag.addEventListener('click', ()=>{
-      // 点击标签 = 选中该家庭 = 同步到"谁付的"下拉框，高亮跟随生效
+    tag.addEventListener('click', e=>{
+      if(e.target.closest('.pt-ops')) return;  // 点操作图标不触发选中
       $('payerTags').querySelectorAll('.payer-tag').forEach(t=>t.classList.remove('active'));
       tag.classList.add('active');
       $('entryPayer').value = tag.getAttribute('data-p');
     });
   });
+
+  // ✏️ 改名
+  $('payerTags').querySelectorAll('.pt-edit').forEach(btn=>{
+    btn.addEventListener('click', async e=>{
+      e.stopPropagation();
+      const oldName = btn.getAttribute('data-p');
+      const newName = prompt('输入新名字：', oldName);
+      if(!newName || newName.trim()===oldName){ return; }
+      try{
+        await api('/api/activities/'+state.current.id+'/payers/'+encodeURIComponent(oldName),'PUT',{name:newName.trim()});
+        toast('✅ 已改名: '+oldName+' → '+newName.trim());
+        await openActivity(state.current.id);
+      }catch(err){ toast('改名失败: '+err.message); }
+    });
+  });
+
+  // 🗑 删除
+  $('payerTags').querySelectorAll('.pt-del').forEach(btn=>{
+    btn.addEventListener('click', async e=>{
+      e.stopPropagation();
+      const name = btn.getAttribute('data-p');
+      if(!confirm('删除家庭「'+name+'」？（只从参与家庭移除，已记消费保留）')) return;
+      try{
+        await api('/api/activities/'+state.current.id+'/payers/'+encodeURIComponent(name),'DELETE');
+        toast('✅ 已删除: '+name);
+        await openActivity(state.current.id);
+      }catch(err){ toast('删除失败: '+err.message); }
+    });
+  });
+
   // 默认第一个选中（同步到下拉框）
   const first = $('payerTags').querySelector('.payer-tag');
   if(first){ first.classList.add('active'); $('entryPayer').value = first.getAttribute('data-p'); }
