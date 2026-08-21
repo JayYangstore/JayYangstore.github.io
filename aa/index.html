@@ -329,7 +329,8 @@ async function unarchiveActivity(id){
     loadArchive();
   }catch(e){ toast('恢复失败: '+e.message); }
 }
-$('btnOpenArchive').addEventListener('click', ()=>{
+$('btnOpenArchive').addEventListener('click', async ()=>{
+  try{ state.activities = await api('/api/activities'); }catch(e){}
   loadArchive();
   $('viewHome').classList.add('hidden');
   $('viewArchive').classList.remove('hidden');
