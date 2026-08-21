@@ -101,7 +101,11 @@ input:focus,select:focus{border-color:var(--accent)}
     <button class="back" id="btnBack">‹</button>
     <h1 id="activityTitle">活动</h1>
   </div>
-  <p class="sub" style="margin-top:-8px" id="activityLink">链接</p>
+  <p class="sub" style="margin-top:-8px">👇 邀请朋友一起记账</p>
+  <div class="link-share" id="linkShareRow" style="display:flex;align-items:center;gap:8px">
+    <div id="activityLink" style="flex:1;min-width:0;font-size:12px;color:var(--ink2);word-break:break-all"></div>
+    <button class="copy-btn" id="btnCopyLink" style="width:auto;padding:9px 14px;margin:0;flex:0 0 auto;border-radius:9px;font-size:13px">📋 复制</button>
+  </div>
 
   <div class="card">
     <h3>💸 记一笔</h3>
@@ -239,6 +243,20 @@ async function openActivity(id){
     $('settleResult').classList.add('hidden');
   }catch(e){ toast('活动不存在或加载失败: '+e.message); }
 }
+$('btnCopyLink').addEventListener('click', async ()=>{
+  const link = $('activityLink').textContent.trim();
+  if(!link){ toast('链接未生成'); return; }
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('✅ 链接已复制，去微信粘贴');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = link; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    toast('✅ 链接已复制，去微信粘贴');
+  }
+});
+
 $('btnBack').addEventListener('click', ()=>{
   $('viewActivity').classList.add('hidden');
   $('viewHome').classList.remove('hidden');
@@ -249,12 +267,15 @@ function renderPayers(){
   $('payerTags').innerHTML = state.payers.map(p=>`<span class="payer-tag" data-p="${esc(p)}">${esc(p)}</span>`).join('');
   $('payerTags').querySelectorAll('.payer-tag').forEach(tag=>{
     tag.addEventListener('click', ()=>{
-      tag.classList.toggle('active');
+      // 点击标签 = 选中该家庭 = 同步到"谁付的"下拉框，高亮跟随生效
+      $('payerTags').querySelectorAll('.payer-tag').forEach(t=>t.classList.remove('active'));
+      tag.classList.add('active');
+      $('entryPayer').value = tag.getAttribute('data-p');
     });
   });
-  // 默认第一个选中
+  // 默认第一个选中（同步到下拉框）
   const first = $('payerTags').querySelector('.payer-tag');
-  if(first) first.classList.add('active');
+  if(first){ first.classList.add('active'); $('entryPayer').value = first.getAttribute('data-p'); }
 }
 $('btnAddEntry').addEventListener('click', async ()=>{
   const payer = $('entryPayer').value;
