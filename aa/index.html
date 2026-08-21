@@ -95,6 +95,9 @@ input:focus,select:focus{border-color:var(--accent)}
   <div class="card">
     <h3>📋 历史活动</h3>
     <div id="activityList"></div>
+    <div style="margin-top:8px">
+      <button class="btn ghost" id="btnOpenArchive" style="width:100%;margin:0;padding:11px;border-style:dashed;color:var(--ink3)">🗂 历史归档（点击查看）</button>
+    </div>
   </div>
 
   <div class="card">
@@ -173,6 +176,18 @@ input:focus,select:focus{border-color:var(--accent)}
   </div>
 </div>
 
+<!-- ======= 归档列表页：查看已归档活动 ======= -->
+<div id="viewArchive" class="view hidden">
+  <div class="topbar">
+    <button class="back" id="btnBackArchive">‹</button>
+    <h1>🗂 历史归档</h1>
+  </div>
+  <p class="sub" style="margin-top:-8px">已归档的活动都在这里，点击可进入查看</p>
+  <div class="card">
+    <div id="archiveList"></div>
+  </div>
+</div>
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -207,45 +222,46 @@ let state = { activities: [], current: null, payers: [] };
 /* ============ 首页 ============ */
 async function loadActivities(){
   try{
-    state.activities = await api('/api/activities');
+    const all = await api('/api/activities');
+    state.activities = all;
+    const active = all.filter(a => !a.archived);
     const list = $('activityList');
-    if(!state.activities.length){ list.innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:10px">还没有活动，创建一个吧</div>'; return; }
-    list.innerHTML = state.activities.map((a,i)=>`
-      <div class="swipe-row" data-i="${i}">
+    if(!active.length){ list.innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:10px">还没有活动，创建一个吧</div>'; return; }
+    list.innerHTML = active.map(a=>`
+      <div class="swipe-row">
         <div class="swipe-bg">
-          <button class="btn-archive" data-id="${a.id}" ${a.archived?'disabled style="opacity:.4"':''}>${a.archived?'已归档':'📦 归档'}</button>
+          <button class="btn-archive" data-id="${a.id}">📦 归档</button>
         </div>
         <div class="swipe-content" onclick="openActivity('${a.id}')">
           <div>
             <div style="font-weight:600">${esc(a.name)}</div>
-            <div style="font-size:11px;color:var(--ink3)">${a.archived?'📦 已归档 · ':''}${a.entries_count}笔 · ¥${Number(a.total).toFixed(2)}</div>
+            <div style="font-size:11px;color:var(--ink3)">${a.entries_count}笔 · ¥${Number(a.total).toFixed(2)}</div>
           </div>
           <button class="btn ghost" style="margin:0;padding:8px 14px;width:auto" onclick="event.stopPropagation();openActivity('${a.id}')">进入</button>
         </div>
       </div>
     `).join('');
 
-    // 左滑手势：每行监听 touch，左滑露出归档按钮，点击其他地方收起
+    // 左滑手势
     let openRow = null;
     function closeAll(){ document.querySelectorAll('.swipe-content.open').forEach(el=>el.classList.remove('open')); openRow=null; }
 
     document.querySelectorAll('.swipe-row').forEach(row=>{
       const content = row.querySelector('.swipe-content');
-      let startX=0, startY=0, dx=0, dy=0, dragging=false, locked=false;
+      let startX=0, startY=0, dx=0, dy=0, dragging=false;
 
       content.addEventListener('touchstart', e=>{
-        if(locked) return;
         const t = e.touches[0];
         startX=t.clientX; startY=t.clientY; dx=0; dy=0; dragging=true;
         content.style.transition='none';
       }, {passive:true});
 
       content.addEventListener('touchmove', e=>{
-        if(!dragging || locked) return;
+        if(!dragging) return;
         const t = e.touches[0];
         dx = t.clientX - startX; dy = t.clientY - startY;
-        if(Math.abs(dy) > Math.abs(dx)){ dragging=false; return; }  // 垂直滚动，不拦截
-        if(dx > 0) return;  // 只左滑
+        if(Math.abs(dy) > Math.abs(dx)){ dragging=false; return; }
+        if(dx > 0) return;
         content.style.transform = `translateX(${Math.max(dx, -88)}px)`;
       }, {passive:true});
 
@@ -257,23 +273,24 @@ async function loadActivities(){
         else content.style.transform='';
       });
 
-      // 点内容（非进入按钮）→ 关闭其他已开行 + 进入活动由 onclick 处理
       content.addEventListener('click', e=>{
         if(e.target.closest('.btn')) return;
         closeAll();
       });
 
-      // 归档按钮
+      // 归档按钮 → 归档后立即从列表消失
       row.querySelector('.btn-archive').addEventListener('click', async e=>{
         e.stopPropagation();
         const id = e.currentTarget.dataset.id;
-        if(e.currentTarget.disabled) return;
-        if(!confirm('归档这个活动？（归档后沉底，数据保留）')) return;
+        if(!confirm('归档这个活动？（归档后从列表消失，可在"历史归档"里找回）')) return;
         try{
           await api('/api/activities/'+id+'/archive','POST');
           toast('✅ 已归档');
-          closeAll();
-          await loadActivities();
+          row.remove();   // 立即从列表移除
+          // 如果列表空了，显示空状态
+          if(!document.querySelector('#activityList .swipe-row')){
+            $('activityList').innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:10px">还没有活动，创建一个吧</div>';
+          }
         }catch(err){ toast('归档失败: '+err.message); }
       });
     });
@@ -284,6 +301,44 @@ async function loadActivities(){
     });
   }catch(e){ toast('加载失败: '+e.message); }
 }
+
+/* ============ 归档列表页 ============ */
+function loadArchive(){
+  const archived = (state.activities||[]).filter(a => a.archived);
+  const box = $('archiveList');
+  if(!archived.length){
+    box.innerHTML = '<div style="color:var(--ink3);font-size:13px;text-align:center;padding:20px">还没有归档的活动</div>';
+    return;
+  }
+  box.innerHTML = archived.map(a=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)">
+      <div style="cursor:pointer;flex:1" onclick="openActivity('${a.id}')">
+        <div style="font-weight:600">📦 ${esc(a.name)}</div>
+        <div style="font-size:11px;color:var(--ink3)">${a.entries_count}笔 · ¥${Number(a.total).toFixed(2)}</div>
+      </div>
+      <button class="btn ghost" style="margin:0;padding:7px 12px;width:auto" onclick="unarchiveActivity('${a.id}')">↩ 恢复</button>
+    </div>
+  `).join('');
+}
+async function unarchiveActivity(id){
+  try{
+    await api('/api/activities/'+id+'/unarchive','POST');
+    toast('✅ 已恢复');
+    // 刷新归档列表 + 首页
+    state.activities = await api('/api/activities');
+    loadArchive();
+  }catch(e){ toast('恢复失败: '+e.message); }
+}
+$('btnOpenArchive').addEventListener('click', ()=>{
+  loadArchive();
+  $('viewHome').classList.add('hidden');
+  $('viewArchive').classList.remove('hidden');
+});
+$('btnBackArchive').addEventListener('click', ()=>{
+  $('viewArchive').classList.add('hidden');
+  $('viewHome').classList.remove('hidden');
+  loadActivities();
+});
 $('btnCreateActivity').addEventListener('click', async ()=>{
   const name = $('newActivityName').value.trim() || '未命名活动';
   try{
