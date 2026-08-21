@@ -244,7 +244,7 @@ async function openActivity(id){
   }catch(e){ toast('活动不存在或加载失败: '+e.message); }
 }
 $('btnCopyLink').addEventListener('click', async ()=>{
-  const link = $('activityLink').textContent.trim();
+  const link = $('activityLink').textContent.trim().replace(/^邀请链接[:：]\s*/, '');
   if(!link){ toast('链接未生成'); return; }
   try{
     await navigator.clipboard.writeText(link);
