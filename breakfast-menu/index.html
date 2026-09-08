@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,18 +8,42 @@
 <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIuWwhuW+geS4reaWh+aWh+aho+OAk++8jOW4iOW3peWFt+iusCIsCiAgInNob3J0X25hbWUiOiAi5aW95Z6CX+WIsCIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzEyMTYxRiIsCiAgInRoZW1lX2NvbG9yIjogIiMxMjE2MUYiCn0=">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #12161F; --card: #1A1F2B; --border: #2A3142;
+/* === 主题:深色(基于记账 PWA v6 调色板) === */
+:root[data-theme="dark"] {
+  --bg: #12161F; --bg-2: #1A1F2B; --card: #1A1F2B; --border: #2A3142;
   --text: #E8ECF2; --text-dim: #8A93A6; --text-mute: #5A6376;
-  --accent: #E8B660; --accent-dim: #B8903F;
+  --accent: #E8B660; --accent-dim: #B8903F; --accent-on: #12161F;
   --good: #6BBE6B; --warn: #E89B4D; --bad: #E86464;
   --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --modal-bg: rgba(0,0,0,0.7);
+  --placeholder-from: #2A3142; --placeholder-to: #1A1F2B;
+  --img-overlay: rgba(0,0,0,0.75);
+  --input-bg: #12161F;
+  --rank-1: #FFD700; --rank-2: #C0C0C0; --rank-3: #CD7F32;
+  --rank-on: #000;
+}
+/* === 主题:浅色(暖白底 + 暖橙) === */
+:root[data-theme="light"] {
+  --bg: #FAF8F3; --bg-2: #F0EBE1; --card: #FFFFFF; --border: #E5DFD3;
+  --text: #2A2520; --text-dim: #6E6558; --text-mute: #A8A094;
+  --accent: #C08840; --accent-dim: #A87530; --accent-on: #FFFFFF;
+  --good: #0E7C3A; --warn: #B86A20; --bad: #C0382B;
+  --shadow: 0 2px 8px rgba(80,60,20,0.08);
+  --shadow-lg: 0 8px 24px rgba(80,60,20,0.12);
+  --modal-bg: rgba(40,30,10,0.45);
+  --placeholder-from: #F0EBE1; --placeholder-to: #E5DFD3;
+  --img-overlay: rgba(40,30,10,0.65);
+  --input-bg: #FAF8F3;
+  --rank-1: #E8B660; --rank-2: #B8B8B8; --rank-3: #C08850;
+  --rank-on: #FFFFFF;
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg); color: var(--text);
   padding: 12px 14px 80px; font-size: 14px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color .25s, color .25s;
 }
 header {
   display: flex; align-items: center; justify-content: space-between;
@@ -30,16 +54,18 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .icon-btn {
   background: var(--card); color: var(--text-dim); border: 1px solid var(--border);
   padding: 6px 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
+  transition: background-color .2s, color .2s, transform .15s;
 }
-.icon-btn:active { background: var(--accent); color: var(--bg); }
+.icon-btn:hover { background: var(--bg-2); color: var(--text); }
+.icon-btn:active { background: var(--accent); color: var(--accent-on); transform: scale(0.95); }
 
 /* Today's plan banner */
 .today-banner {
   display: flex; align-items: center; justify-content: space-between;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
-  color: var(--bg); padding: 12px 14px; border-radius: 12px;
+  color: var(--accent-on); padding: 12px 14px; border-radius: 12px;
   margin-bottom: 14px; font-weight: 600; cursor: pointer;
-  box-shadow: 0 2px 6px rgba(232,182,96,0.25);
+  box-shadow: var(--shadow);
 }
 .today-banner.empty { background: var(--card); color: var(--text-dim); cursor: default; box-shadow: none; }
 .today-banner .arrow { font-size: 18px; }
@@ -61,10 +87,10 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .day-cell .dc-date { font-size: 14px; font-weight: 700; color: var(--text); margin: 2px 0; }
 .day-cell .dc-count {
   display: inline-block; min-width: 18px; padding: 0 5px;
-  background: var(--accent); color: var(--bg); border-radius: 8px;
+  background: var(--accent); color: var(--accent-on); border-radius: 8px;
   font-size: 10px; font-weight: 700; line-height: 16px;
 }
-.day-cell .dc-count.zero { background: var(--bg); color: var(--text-mute); border: 1px solid var(--border); }
+.day-cell .dc-count.zero { background: var(--bg-2); color: var(--text-mute); border: 1px solid var(--border); }
 
 /* Tabs */
 .tabs {
@@ -77,7 +103,7 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
   background: var(--card); color: var(--text-dim); border: 1px solid var(--border);
   cursor: pointer; transition: all 0.2s;
 }
-.tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.tab.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); font-weight: 600; }
 
 /* Stats bar */
 .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
@@ -109,19 +135,19 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .card:active { transform: scale(0.98); }
 .card.urgent { border-color: var(--warn); }
 .card-img {
-  width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg, #2A3142 0%, #1A1F2B 100%);
+  width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg, var(--placeholder-from) 0%, var(--placeholder-to) 100%);
   display: flex; align-items: center; justify-content: center; position: relative;
 }
 .card-img img { width: 100%; height: 100%; object-fit: cover; }
 .card-img .placeholder { font-size: 36px; opacity: 0.4; }
 .card-img .time-badge {
   position: absolute; bottom: 6px; left: 6px;
-  background: rgba(0,0,0,0.75); color: var(--accent);
+  background: var(--img-overlay); color: var(--accent);
   padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
 }
 .card-img .count-badge {
   position: absolute; top: 6px; right: 6px;
-  background: var(--accent); color: var(--bg);
+  background: var(--accent); color: var(--accent-on);
   padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
 }
 .card-actions {
@@ -136,10 +162,15 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
   transition: transform 0.15s;
 }
 .icon-circle:active { transform: scale(0.9); }
-.icon-circle.plus { background: var(--accent); color: var(--bg); }
+.icon-circle.plus { background: var(--accent); color: var(--accent-on); }
 .icon-circle.plus.recent { background: var(--good); color: #fff; }
-.icon-circle.cart { background: #6B8FE8; color: #fff; }
-.icon-circle.cart.in-cart { background: var(--warn); color: var(--bg); }
+/* 购物车 icon:柔和 chip 风格,用 accent 系而不是饱和蓝 */
+.icon-circle.cart {
+  background: var(--bg-2); color: var(--accent);
+  border: 1px solid var(--border);
+  font-size: 15px;
+}
+.icon-circle.cart.in-cart { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
 
 .card-body { padding: 10px 12px; }
 .card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px;
@@ -160,10 +191,10 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 12px; flex-shrink: 0;
 }
-.rank-1 { background: #FFD700; color: #000; }
-.rank-2 { background: #C0C0C0; color: #000; }
-.rank-3 { background: #CD7F32; color: #000; }
-.rank-other { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); }
+.rank-1 { background: var(--rank-1); color: var(--rank-on); }
+.rank-2 { background: var(--rank-2); color: var(--rank-on); }
+.rank-3 { background: var(--rank-3); color: var(--rank-on); }
+.rank-other { background: var(--bg-2); color: var(--text-dim); border: 1px solid var(--border); }
 .rank-name { flex: 1; font-size: 14px; font-weight: 600; }
 .rank-info { font-size: 11px; color: var(--text-dim); text-align: right; }
 .rank-info .count-num { font-size: 15px; color: var(--accent); font-weight: 700; }
@@ -176,19 +207,22 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .fab {
   position: fixed; bottom: 20px; right: 20px;
   width: 56px; height: 56px; border-radius: 50%;
-  background: var(--accent); color: var(--bg); border: none;
+  background: var(--accent); color: var(--accent-on); border: none;
   font-size: 28px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(232,182,96,0.4); z-index: 100;
+  box-shadow: var(--shadow-lg); z-index: 100;
+  transition: transform .15s;
 }
 .fab:active { transform: scale(0.95); }
 
+/* 购物车 FAB:用 accent 系而非饱和蓝 */
 .cart-fab {
   position: fixed; bottom: 20px; left: 20px;
   min-width: 56px; height: 56px; padding: 0 16px; border-radius: 28px;
-  background: #6B8FE8; color: #fff; border: none;
+  background: var(--accent); color: var(--accent-on); border: none;
   font-size: 22px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(107,143,232,0.4); z-index: 100;
+  box-shadow: var(--shadow-lg); z-index: 100;
   display: flex; align-items: center; gap: 6px;
+  transition: transform .15s, opacity .2s;
 }
 .cart-fab:active { transform: scale(0.95); }
 .cart-fab .badge {
@@ -200,8 +234,9 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 
 /* Modals */
 .modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  position: fixed; inset: 0; background: var(--modal-bg);
   z-index: 200; display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(2px);
 }
 .modal-bg.show { display: flex; }
 .modal {
@@ -215,17 +250,24 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
 .form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 10px 12px; border-radius: 8px;
-  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  background: var(--input-bg); border: 1px solid var(--border); color: var(--text);
   font-size: 14px; font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--accent);
 }
 .form-group textarea { min-height: 80px; resize: vertical; }
 .btn-row { display: flex; gap: 8px; margin-top: 16px; }
 .btn {
   flex: 1; padding: 12px; border-radius: 10px; border: none;
   font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: transform .15s, background-color .2s, opacity .2s;
 }
-.btn-primary { background: var(--accent); color: var(--bg); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: var(--accent-on); }
+.btn-primary:hover { opacity: 0.92; }
 .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg-2); color: var(--text); }
 .btn-danger { background: var(--bad); color: #fff; }
 .btn-good { background: var(--good); color: #fff; }
 
@@ -236,11 +278,13 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 /* Photo */
 .photo-preview {
   width: 100%; max-width: 200px; aspect-ratio: 1/1;
-  border-radius: 10px; background: var(--bg); border: 1px dashed var(--border);
+  border-radius: 10px; background: var(--input-bg); border: 1px dashed var(--border);
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; color: var(--text-dim); cursor: pointer;
   overflow: hidden; margin-bottom: 6px;
+  transition: border-color .2s;
 }
+.photo-preview:hover { border-color: var(--accent); }
 .photo-preview img { width: 100%; height: 100%; object-fit: counter; }
 
 /* Ingredients */
@@ -263,10 +307,10 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 /* Detail modal adjust buttons */
 .adjust-row { display: flex; gap: 4px; }
 .adjust-row button {
-  flex: 1; padding: 8px 4px; border-radius: 8px; background: var(--bg);
+  flex: 1; padding: 8px 4px; border-radius: 8px; background: var(--bg-2);
   color: var(--text-dim); border: 1px solid var(--border); font-size: 13px; cursor: pointer;
 }
-.adjust-row button:active { background: var(--accent); color: var(--bg); }
+.adjust-row button:active { background: var(--accent); color: var(--accent-on); }
 .adjust-row button.plus:active { background: var(--good); color: #fff; }
 
 /* Toast */
@@ -280,7 +324,7 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .toast.warn { background: var(--warn); }
 .toast.err { background: var(--bad); }
 
-.detail-recipe { margin-top: 14px; padding: 12px; background: var(--bg); border-radius: 8px; }
+.detail-recipe { margin-top: 14px; padding: 12px; background: var(--bg-2); border-radius: 8px; }
 .detail-recipe h3 { font-size: 13px; color: var(--accent); margin-bottom: 6px; }
 .detail-recipe pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.6; }
 
@@ -288,7 +332,7 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .cart-list { margin: 12px 0; }
 .cart-item {
   display: flex; align-items: center; gap: 10px; padding: 10px;
-  background: var(--bg); border-radius: 8px; margin-bottom: 6px;
+  background: var(--bg-2); border-radius: 8px; margin-bottom: 6px;
 }
 .cart-item .ci-img {
   width: 48px; height: 48px; border-radius: 6px;
@@ -304,7 +348,7 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 }
 
 .shopping-list {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
   padding: 12px; margin: 10px 0;
 }
 .shopping-list h4 { font-size: 12px; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -323,15 +367,68 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .date-picker-popup {
   position: fixed; background: var(--card); border: 1px solid var(--border);
   border-radius: 10px; padding: 6px; z-index: 300;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5); min-width: 160px;
+  box-shadow: var(--shadow-lg); min-width: 160px;
 }
 .date-picker-popup button {
   display: block; width: 100%; padding: 10px 14px;
   background: transparent; border: none; color: var(--text);
   text-align: left; cursor: pointer; border-radius: 6px; font-size: 14px;
 }
-.date-picker-popup button:active { background: var(--accent); color: var(--bg); }
+.date-picker-popup button:active { background: var(--accent); color: var(--accent-on); }
 .date-picker-popup button small { color: var(--text-dim); display: block; font-size: 11px; }
+
+/* === Search box === */
+.search-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 10px 4px 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 8px 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-row:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.search-row .search-icon { color: var(--text-dim); font-size: 16px; line-height: 1; }
+.search-row input {
+  flex: 1; border: none; background: transparent; color: var(--text);
+  font-size: 14px; outline: none; padding: 0;
+  font-family: inherit;
+}
+.search-row input::placeholder { color: var(--text-mute); }
+.search-clear {
+  background: var(--bg-2); border: none; color: var(--text-dim);
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  font-size: 14px; line-height: 1; display: none; align-items: center; justify-content: center;
+}
+.search-clear:hover { background: var(--border); color: var(--text); }
+.search-clear.show { display: flex; }
+
+/* === Theme picker (settings modal) === */
+.theme-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin: 10px 0;
+}
+.theme-card {
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  cursor: pointer; background: var(--bg-2); position: relative;
+  transition: border-color .2s, transform .15s;
+}
+.theme-card:active { transform: scale(0.98); }
+.theme-card.selected { border-color: var(--accent); border-width: 2px; padding: 11px; }
+.theme-card .theme-swatch {
+  display: flex; gap: 4px; height: 28px; border-radius: 8px; overflow: hidden;
+  margin-bottom: 8px; border: 1px solid var(--border);
+}
+.theme-card .theme-swatch span { flex: 1; }
+.theme-card .theme-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.theme-card .theme-desc { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+.theme-card .theme-check {
+  position: absolute; top: 8px; right: 10px;
+  color: var(--accent); font-size: 16px; opacity: 0;
+}
+.theme-card.selected .theme-check { opacity: 1; }
+
 </style>
 </head>
 <body>
@@ -341,6 +438,7 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
   <div class="header-actions">
     <button class="icon-btn" onclick="exportData()" title="导出 JSON 备份">💾</button>
     <button class="icon-btn" onclick="importData()" title="导入 JSON">📥</button>
+    <button class="icon-btn" onclick="openSettings()" title="主题 / 设置" id="settingsBtn">🎨</button>
   </div>
 </header>
 
@@ -371,6 +469,13 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 </div>
 
 <!-- Tabs -->
+<!-- Search box -->
+<div class="search-row">
+  <span class="search-icon">🔍</span>
+  <input id="searchInput" placeholder="搜菜名 / 食材 / 标签" oninput="onSearchInput()">
+  <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
+</div>
+
 <div class="tabs" id="tabs">
   <div class="tab active" data-cat="all">全部</div>
   <div class="tab" data-cat="breakfast-fast">⚡ 早餐快手</div>
@@ -509,6 +614,25 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 <!-- Date picker popup (动态位置) -->
 <div id="datePickerPopup" class="date-picker-popup" style="display:none"></div>
 
+<!-- Settings Modal (主题选择) -->
+<div class="modal-bg" id="settingsBg">
+  <div class="modal">
+    <h2>⚙️ 设置</h2>
+    <div class="form-group">
+      <label>主题外观</label>
+      <div class="theme-grid" id="themeGrid"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeSettings()">关闭</button>
+      <button class="btn btn-primary" onclick="resetTheme()">重置偏好</button>
+    </div>
+    <div style="margin-top:14px;padding:10px;background:var(--bg-2);border-radius:8px;font-size:12px;color:var(--text-dim);line-height:1.6;">
+      💡 数据存本地浏览器,跨设备用右上 💾 导出 / 📥 导入。<br>
+      🌗 主题偏好保存后下次打开仍是这套。
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -525,6 +649,97 @@ let currentIngredients = [];   // 编辑 modal 的临时食材
 let currentCartTab = null;     // 购物车 modal 当前选中的日期
 let lastPlusTap = {};
 let datePickerCallback = null;
+let currentSearch = '';        // 搜索关键词
+
+/* ========== v2.0 主题切换(放在 state 之后、render 之前) =========== */
+const THEMES = {
+  dark: { name: '深色(夜读)', desc: '深底 + 金色 · 默认',
+    bg: '#12161F', card: '#1A1F2B', border: '#2A3142', text: '#E8ECF2',
+    accent: '#E8B660', accentOn: '#12161F' },
+  light: { name: '浅色(暖白)', desc: '暖白 + 暖橙 · 白天友好',
+    bg: '#FAF8F3', card: '#FFFFFF', border: '#E5DFD3', text: '#2A2520',
+    accent: '#C08840', accentOn: '#FFFFFF' },
+};
+const THEME_KEY = 'breakfast-menu-theme';
+
+function applyTheme(id, persist=true) {
+  const t = THEMES[id];
+  if (!t) return;
+  document.documentElement.setAttribute('data-theme', id);
+  // 同步 meta theme-color(浏览器顶栏色,iOS PWA 必看)
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t.bg);
+  if (persist) { try { localStorage.setItem(THEME_KEY, id); } catch(e){} }
+}
+
+function loadTheme() {
+  let id;
+  try { id = localStorage.getItem(THEME_KEY) || 'dark'; } catch(e){ id='dark'; }
+  applyTheme(id, false);  // 启动不持久化,保留默认行为
+}
+
+function openSettings() {
+  const grid = document.getElementById('themeGrid');
+  let cur;
+  try { cur = localStorage.getItem(THEME_KEY) || 'dark'; } catch(e){ cur='dark'; }
+  grid.innerHTML = Object.entries(THEMES).map(([id, t]) => {
+    const sel = cur === id;
+    return `
+    <div class="theme-card ${sel?'selected':''}" data-theme="${id}">
+      <div class="theme-swatch">
+        <span style="background:${t.bg}"></span>
+        <span style="background:${t.card}"></span>
+        <span style="background:${t.border}"></span>
+        <span style="background:${t.accent}"></span>
+      </div>
+      <div class="theme-name">${t.name}</div>
+      <div class="theme-desc">${t.desc}</div>
+      <div class="theme-check">✓</div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.theme-card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.theme;
+      applyTheme(id);
+      openSettings(); // 刷新选中状态
+    });
+  });
+  document.getElementById('settingsBg').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settingsBg').classList.remove('show');
+}
+document.getElementById('settingsBg').addEventListener('click', e => {
+  if (e.target.id === 'settingsBg') closeSettings();
+});
+function resetTheme() {
+  try { localStorage.removeItem(THEME_KEY); } catch(e){}
+  applyTheme('dark');
+  openSettings();
+  toast('已重置为深色主题');
+}
+loadTheme();  // 启动立即应用主题(在 render 之前,避免颜色闪一下)
+
+/* ========== 搜索过滤 =========== */
+function onSearchInput() {
+  const v = document.getElementById('searchInput').value.trim().toLowerCase();
+  currentSearch = v;
+  document.getElementById('searchClear').classList.toggle('show', v.length > 0);
+  renderGrid();
+  renderRanking();
+}
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  onSearchInput();
+  document.getElementById('searchInput').focus();
+}
+function dishMatchesSearch(d, q) {
+  if (!q) return true;
+  if ((d.name || '').toLowerCase().includes(q)) return true;
+  if ((d.tags || []).some(t => t.toLowerCase().includes(q))) return true;
+  if ((d.ingredients || []).some(i => (i.name || '').toLowerCase().includes(q))) return true;
+  return false;
+}
 
 // === Storage ===
 function loadState() {
@@ -648,7 +863,10 @@ function renderStats() {
   document.getElementById('statBreakfast').textContent = state.dishes.filter(cfg.filter).length;
   document.getElementById('breakfastLabel').textContent = cfg.label;
   const urgentDays = daysAgo(30);
-  const urgent = state.dishes.filter(d => cfg.filter(d) && d.last_made < urgentDays).length;
+  // 搜索模式下:用「过滤后」的列表算 urgent,避免数字跟卡片数对不上
+  let pool = state.dishes.filter(cfg.filter);
+  if (currentSearch) pool = pool.filter(d => dishMatchesSearch(d, currentSearch));
+  const urgent = pool.filter(d => d.last_made < urgentDays).length;
   document.getElementById('statUrgent').textContent = urgent;
 }
 
@@ -656,7 +874,9 @@ function getRanking(scope) {
   let list = state.dishes;
   if (scope === 'breakfast') list = list.filter(d => d.category.startsWith('breakfast'));
   else if (scope === 'dinner') list = list.filter(d => d.category === 'dinner');
-  // 排名规则：① 评分 < 3 的菜不上榜（不真爱）② 主要按 made_count 降序 ③ 次数相同按平均分
+  // 搜索模式下:再过滤一次
+  if (currentSearch) list = list.filter(d => dishMatchesSearch(d, currentSearch));
+  // 排名规则:① 评分 < 3 的菜不上榜(不真爱)② 主要按 made_count 降序 ③ 次数相同按平均分
   const scored = list.map(d => {
     const rs = Object.values(d.ratings || {}).filter(r => r != null);
     const avg = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : 0;
@@ -708,6 +928,8 @@ function renderGrid() {
   const grid = document.getElementById('cardGrid');
   let list = [...state.dishes];
   if (currentTab !== 'all') list = list.filter(d => d.category === currentTab);
+  // 搜索过滤
+  if (currentSearch) list = list.filter(d => dishMatchesSearch(d, currentSearch));
   const urgentDays = daysAgo(30);
   list.sort((a, b) => {
     const aU = a.last_made < urgentDays, bU = b.last_made < urgentDays;
@@ -715,7 +937,10 @@ function renderGrid() {
     return a.name.localeCompare(b.name, 'zh');
   });
   if (list.length === 0) {
-    grid.innerHTML = '<div class="empty" style="grid-column: 1/-1;"><div class="emoji">👨‍🍳</div>这个分类还没有菜</div>';
+    const msg = currentSearch
+      ? `<div class="emoji">🔍</div>没搜到「${escape(currentSearch)}」相关菜`
+      : `<div class="emoji">👨‍🍳</div>这个分类还没有菜`;
+    grid.innerHTML = `<div class="empty" style="grid-column: 1/-1;">${msg}</div>`;
     return;
   }
   grid.innerHTML = list.map(d => {
@@ -1299,10 +1524,10 @@ function openDetail(id) {
   document.getElementById('detailBody').innerHTML = `
     ${photoHtml}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-      <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">⏱ ${d.time_min}min</span>
-      <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">× ${d.made_count}次</span>
-      <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">${lastMadeLabel(d.last_made)}</span>
-      ${avgR(d) ? `<span style="background:var(--accent);color:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;">★ ${avgR(d).toFixed(1)}</span>` : ''}
+      <span style="background:var(--bg-2);padding:4px 10px;border-radius:6px;font-size:12px;">⏱ ${d.time_min}min</span>
+      <span style="background:var(--bg-2);padding:4px 10px;border-radius:6px;font-size:12px;">× ${d.made_count}次</span>
+      <span style="background:var(--bg-2);padding:4px 10px;border-radius:6px;font-size:12px;">${lastMadeLabel(d.last_made)}</span>
+      ${avgR(d) ? `<span style="background:var(--accent);color:var(--accent-on);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;">★ ${avgR(d).toFixed(1)}</span>` : ''}
     </div>
     <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">
       板栗 ${starText(d.ratings?.banli)} · 妞妞 ${starText(d.ratings?.niuniu)} · 老婆 ${starText(d.ratings?.wife)}
