@@ -102,6 +102,47 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .card-rating { color: var(--accent); font-weight: 700; }
 .card-rating.dim { color: var(--text-mute); }
 
+/* +1 button on card */
+.card-plus {
+  position: absolute; bottom: 6px; right: 6px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: var(--bg);
+  border: none; font-size: 16px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: transform 0.15s;
+  z-index: 2;
+}
+.card-plus:active { transform: scale(0.9); background: var(--good); color: #fff; }
+.card-plus.recent { background: var(--good); color: #fff; }
+
+/* Header right icons */
+.header-actions { display: flex; gap: 6px; }
+.icon-btn {
+  background: var(--card); color: var(--text-dim); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.icon-btn:active { background: var(--accent); color: var(--bg); }
+
+/* Photo upload preview */
+.photo-preview {
+  width: 100%; max-width: 200px; aspect-ratio: 1/1;
+  border-radius: 10px; background: var(--bg); border: 1px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
+  overflow: hidden; margin-bottom: 6px;
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Quick +N buttons */
+.quick-add-row { display: flex; gap: 6px; margin-top: 6px; }
+.quick-add-row button {
+  flex: 1; padding: 8px; border-radius: 8px; background: var(--bg);
+  color: var(--text-dim); border: 1px solid var(--border); font-size: 13px;
+  cursor: pointer;
+}
+.quick-add-row button:active { background: var(--accent); color: var(--bg); }
+
 /* Ranking */
 .ranking-list {
   background: var(--card); border: 1px solid var(--border); border-radius: 12px;
@@ -198,19 +239,29 @@ header .date { font-size: 12px; color: var(--text-dim); }
 
 <header>
   <h1>🍳 早餐菜单库</h1>
-  <div class="date" id="todayDate"></div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="exportData()" title="导出 JSON 备份">💾</button>
+    <button class="icon-btn" onclick="importData()" title="导入 JSON">📥</button>
+  </div>
+  <div class="date" id="todayDate" style="display:none"></div>
 </header>
 
 <!-- Top stats -->
 <div class="stats-bar">
   <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总菜数</div></div>
-  <div class="stat"><div class="stat-num" id="statBreakfast">0</div><div class="stat-label">早餐档</div></div>
-  <div class="stat"><div class="stat-num" id="statUrgent">0</div><div class="stat-label">待翻牌</div></div>
+  <div class="stat"><div class="stat-num" id="statBreakfast">0</div><div class="stat-label" id="breakfastLabel">早餐档</div></div>
+  <div class="stat"><div class="stat-num" id="statUrgent">0</div><div class="stat-label" id="urgentLabel">待翻牌</div></div>
 </div>
+<div style="text-align:center;font-size:11px;color:var(--text-mute);margin:-8px 0 14px;" id="todayDate"></div>
 
 <!-- Ranking -->
 <div class="section-title">
-  🏆 最爱吃 Top <span class="count" id="rankingCount">0</span>
+  🏆 排行榜 <span class="count" id="rankingCount">0</span>
+</div>
+<div class="tabs" id="rankTabs" style="margin-bottom:8px;">
+  <div class="tab active" data-rank="all">全部</div>
+  <div class="tab" data-rank="breakfast">早餐榜</div>
+  <div class="tab" data-rank="dinner">正餐榜</div>
 </div>
 <div id="rankingList" class="empty">
   <div class="emoji">🍽️</div>
@@ -240,6 +291,14 @@ header .date { font-size: 12px; color: var(--text-dim); }
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <h2 id="modalTitle">➕ 加一道菜</h2>
+    <div class="form-group">
+      <label>照片（点方框上传）</label>
+      <div class="photo-preview" id="photoPreview" onclick="document.getElementById('inpPhoto').click()">
+        <span id="photoPreviewText">点击上传照片</span>
+      </div>
+      <input type="file" id="inpPhoto" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
+      <button type="button" onclick="clearPhoto()" style="background:none;color:var(--text-mute);border:none;font-size:12px;cursor:pointer;padding:4px;">清除照片</button>
+    </div>
     <div class="form-group">
       <label>菜名 *</label>
       <input id="inpName" placeholder="例:番茄鸡蛋三明治">
@@ -317,6 +376,9 @@ let state = loadState();
 let editingId = null;
 let currentTab = 'all';
 let currentRating = { banli: 0, niuniu: 0, wife: 0 };
+let currentPhoto = null;   // base64 dataURL
+let currentRankTab = 'all';
+let lastPlusTap = {};      // {id: timestamp} 用于短时间 +N 防误点
 
 // === Storage ===
 function loadState() {
@@ -367,16 +429,29 @@ function render() {
 
 function renderStats() {
   document.getElementById('statTotal').textContent = state.dishes.length;
-  document.getElementById('statBreakfast').textContent =
-    state.dishes.filter(d => d.category.startsWith('breakfast')).length;
-  // 待翻牌 = 30 天没做
-  const urgent = state.dishes.filter(d => d.last_made < daysAgo(30) || !d.last_made).length;
+  // 第二格：当前 Tab 的菜数 +1（全部=全部, 早餐=早餐档总数, 正餐=正餐总数）
+  const tabMap = {
+    'all': { filter: () => true, label: '全部' },
+    'breakfast-fast': { filter: d => d.category === 'breakfast-fast', label: '⚡快手' },
+    'breakfast-slow': { filter: d => d.category === 'breakfast-slow', label: '🐢慢工' },
+    'dinner': { filter: d => d.category === 'dinner', label: '正餐' },
+  };
+  const cfg = tabMap[currentTab] || tabMap['all'];
+  document.getElementById('statBreakfast').textContent = state.dishes.filter(cfg.filter).length;
+  document.getElementById('breakfastLabel').textContent = cfg.label;
+  // 第三格：当前 Tab 内 30 天没做（待翻牌）
+  const urgentDays = daysAgo(30);
+  const urgent = state.dishes.filter(d => cfg.filter(d) && d.last_made < urgentDays).length;
   document.getElementById('statUrgent').textContent = urgent;
+  document.getElementById('urgentLabel').textContent = '待翻牌';
 }
 
-function getRanking() {
+function getRanking(scope) {
   // 综合评分：平均分（取所有非空），降序
-  const scored = state.dishes.map(d => {
+  let list = state.dishes;
+  if (scope === 'breakfast') list = list.filter(d => d.category.startsWith('breakfast'));
+  else if (scope === 'dinner') list = list.filter(d => d.category === 'dinner');
+  const scored = list.map(d => {
     const rs = Object.values(d.ratings || {}).filter(r => r != null);
     const avg = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : 0;
     return { ...d, avg };
@@ -386,12 +461,13 @@ function getRanking() {
 }
 
 function renderRanking() {
-  const top = getRanking();
+  const top = getRanking(currentRankTab);
   const el = document.getElementById('rankingList');
   document.getElementById('rankingCount').textContent = top.length;
+  const scopeLabel = currentRankTab === 'breakfast' ? '早餐' : currentRankTab === 'dinner' ? '正餐' : '';
   if (top.length === 0) {
     el.className = 'empty';
-    el.innerHTML = '<div class="emoji">🍽️</div>还没评分记录<br>做完早餐打个分吧';
+    el.innerHTML = `<div class="emoji">🍽️</div>${scopeLabel ? scopeLabel + '还没' : '还没'}评分记录<br>做完打个分吧`;
     return;
   }
   el.className = 'ranking-list';
@@ -438,6 +514,11 @@ function renderGrid() {
         ${photoHtml}
         <div class="time-badge">⏱ ${d.time_min}min</div>
         ${d.made_count > 0 ? `<div class="count-badge">×${d.made_count}</div>` : ''}
+        <button class="card-plus ${d.last_made === today ? 'recent' : ''}"
+          onclick="event.stopPropagation();quickPlus('${d.id}', event)"
+          title="${d.last_made === today ? '今天已做过 +1' : '点一下 +1（长按选更多）'}">
+          ${d.last_made === today ? '✓' : '+'}
+        </button>
       </div>
       <div class="card-body">
         <div class="card-name">${escape(d.name)}${urgent ? ' 🔔' : ''}</div>
@@ -486,6 +567,7 @@ function openAddModal() {
   document.getElementById('inpTime').value = 15;
   document.getElementById('inpRecipe').value = '';
   document.getElementById('deleteBtn').style.display = 'none';
+  currentPhoto = null; showPhotoPreview(null);
   setRating('banli', 0); setRating('niuniu', 0); setRating('wife', 0);
   showModal();
 }
@@ -500,6 +582,7 @@ function openEditModal(id) {
   document.getElementById('inpTime').value = d.time_min;
   document.getElementById('inpRecipe').value = d.recipe || '';
   document.getElementById('deleteBtn').style.display = 'block';
+  currentPhoto = d.photo || null; showPhotoPreview(currentPhoto);
   setRating('banli', d.ratings?.banli || 0);
   setRating('niuniu', d.ratings?.niuniu || 0);
   setRating('wife', d.ratings?.wife || 0);
@@ -550,12 +633,14 @@ function saveDish() {
   if (editingId) {
     const d = state.dishes.find(x => x.id === editingId);
     Object.assign(d, data);
+    // photo：仅当 currentPhoto 有值才覆盖（用户点了"清除"则为 null）
+    d.photo = currentPhoto;
     toast('已更新 ✅');
   } else {
     state.dishes.push({
       id: 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       ...data,
-      photo: null,
+      photo: currentPhoto,
       made_count: 0,
       last_made: null,
       tags: [],
@@ -672,18 +757,101 @@ window.importData = function() {
 
 render();
 
-// === Floating backup button (right bottom corner, above FAB) ===
-const backupBtn = document.createElement('button');
-backupBtn.style.cssText = 'position:fixed;bottom:90px;right:20px;background:var(--card);color:var(--text-dim);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:11px;z-index:99;cursor:pointer;';
-backupBtn.innerHTML = '💾 备份';
-backupBtn.onclick = () => { if (confirm('导出 JSON 备份？')) exportData(); };
-document.body.appendChild(backupBtn);
+// === Quick +N (卡片右下 +1 按钮) ===
+function quickPlus(id, ev) {
+  const d = state.dishes.find(x => x.id === id);
+  if (!d) return;
+  const t0 = lastPlusTap[id] || 0;
+  if (Date.now() - t0 < 400) {
+    // 双击：累计 +3
+    addCount(d, 3);
+    lastPlusTap[id] = 0;
+    toast(`${d.name} +3`);
+  } else {
+    addCount(d, 1);
+    lastPlusTap[id] = Date.now();
+  }
+  saveState();
+}
 
-const importBtn = document.createElement('button');
-importBtn.style.cssText = 'position:fixed;bottom:90px;right:80px;background:var(--card);color:var(--text-dim);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:11px;z-index:99;cursor:pointer;';
-importBtn.innerHTML = '📥 导入';
-importBtn.onclick = importData;
-document.body.appendChild(importBtn);
+function addCount(d, n) {
+  d.made_count = (d.made_count || 0) + n;
+  d.last_made = today;
+  render();
+}
+
+// 长按选更多（用 touch/click timer 简单实现）
+let longPressTimer = null;
+document.addEventListener('contextmenu', e => {
+  if (e.target.classList && e.target.classList.contains('card-plus')) e.preventDefault();
+});
+document.addEventListener('mousedown', e => {
+  if (e.target.classList && e.target.classList.contains('card-plus')) {
+    const id = e.target.getAttribute('onclick').match(/'([^']+)'/)[1];
+    longPressTimer = setTimeout(() => {
+      const d = state.dishes.find(x => x.id === id);
+      if (!d) return;
+      const v = prompt(`${d.name} 加几次？输入数字（默认1）`, '1');
+      const n = parseInt(v) || 1;
+      addCount(d, n);
+      toast(`${d.name} +${n}`);
+    }, 600);
+  }
+});
+document.addEventListener('mouseup', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
+
+// === 排行榜 Tab ===
+document.querySelectorAll('#rankTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#rankTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentRankTab = t.dataset.rank;
+    renderRanking();
+  });
+});
+
+// === 照片上传（压缩到 800x800 / 0.7 质量） ===
+function onPhotoSelected(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('请选图片', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // 压缩：最长边 800
+      const max = 800;
+      let w = img.width, h = img.height;
+      if (w > h && w > max) { h = h * max / w; w = max; }
+      else if (h > max) { w = w * max / h; h = max; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      currentPhoto = canvas.toDataURL('image/jpeg', 0.7);
+      showPhotoPreview(currentPhoto);
+      toast('照片已加载 ✅');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showPhotoPreview(dataUrl) {
+  const preview = document.getElementById('photoPreview');
+  const text = document.getElementById('photoPreviewText');
+  if (dataUrl) {
+    preview.innerHTML = `<img src="${dataUrl}">`;
+  } else {
+    preview.innerHTML = '<span id="photoPreviewText">点击上传照片</span>';
+  }
+}
+
+function clearPhoto() {
+  currentPhoto = null;
+  showPhotoPreview(null);
+  document.getElementById('inpPhoto').value = '';
+}
 </script>
 
 </body>
