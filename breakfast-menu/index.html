@@ -144,7 +144,8 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .rank-other { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); }
 .rank-name { flex: 1; font-size: 14px; font-weight: 600; }
 .rank-info { font-size: 11px; color: var(--text-dim); text-align: right; }
-.rank-info .rating { color: var(--accent); font-weight: 700; }
+.rank-info .count-num { font-size: 15px; color: var(--accent); font-weight: 700; }
+.rank-info .rating { color: var(--text-mute); font-size: 10px; }
 
 .empty { text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 13px; }
 .empty .emoji { font-size: 48px; margin-bottom: 12px; }
@@ -608,12 +609,13 @@ function getRanking(scope) {
   let list = state.dishes;
   if (scope === 'breakfast') list = list.filter(d => d.category.startsWith('breakfast'));
   else if (scope === 'dinner') list = list.filter(d => d.category === 'dinner');
+  // 排名规则：① 评分 < 3 的菜不上榜（不真爱）② 主要按 made_count 降序 ③ 次数相同按平均分
   const scored = list.map(d => {
     const rs = Object.values(d.ratings || {}).filter(r => r != null);
     const avg = rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : 0;
     return { ...d, avg };
-  }).filter(d => d.avg > 0);
-  scored.sort((a, b) => b.avg - a.avg || b.made_count - a.made_count);
+  }).filter(d => d.avg >= 3 && d.made_count > 0);   // 必须做过且平均分 ≥ 3
+  scored.sort((a, b) => b.made_count - a.made_count || b.avg - a.avg);
   return scored.slice(0, 5);
 }
 
@@ -624,7 +626,7 @@ function renderRanking() {
   const scopeLabel = currentRankTab === 'breakfast' ? '早餐' : currentRankTab === 'dinner' ? '正餐' : '';
   if (top.length === 0) {
     el.className = 'empty';
-    el.innerHTML = `<div class="emoji">🍽️</div>${scopeLabel ? scopeLabel + '还没' : '还没'}评分记录<br>做完打个分吧`;
+    el.innerHTML = `<div class="emoji">🍽️</div>${scopeLabel ? scopeLabel + '还没' : '还没'}上榜的菜<br><span style="font-size:11px;color:var(--text-mute);">（做过且平均分 ≥ 3 才会出现）</span>`;
     return;
   }
   el.className = 'ranking-list';
@@ -633,8 +635,8 @@ function renderRanking() {
       <div class="rank-num ${i < 3 ? 'rank-' + (i+1) : 'rank-other'}">${i+1}</div>
       <div class="rank-name">${escape(d.name)}</div>
       <div class="rank-info">
+        <div class="count-num">${d.made_count}次</div>
         <div class="rating">★${d.avg.toFixed(1)}</div>
-        <div>${d.made_count}次</div>
       </div>
     </div>
   `).join('');
