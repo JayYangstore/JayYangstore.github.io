@@ -44,6 +44,28 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
 .today-banner.empty { background: var(--card); color: var(--text-dim); cursor: default; box-shadow: none; }
 .today-banner .arrow { font-size: 18px; }
 
+/* Week preview */
+.week-preview {
+  display: flex; gap: 4px; margin-bottom: 14px; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.week-preview::-webkit-scrollbar { display: none; }
+.day-cell {
+  flex: 1; min-width: 56px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 4px; text-align: center; cursor: pointer;
+  transition: all 0.15s;
+}
+.day-cell:active { transform: scale(0.96); }
+.day-cell.today { border-color: var(--accent); }
+.day-cell .dc-name { font-size: 11px; color: var(--text-dim); }
+.day-cell .dc-date { font-size: 14px; font-weight: 700; color: var(--text); margin: 2px 0; }
+.day-cell .dc-count {
+  display: inline-block; min-width: 18px; padding: 0 5px;
+  background: var(--accent); color: var(--bg); border-radius: 8px;
+  font-size: 10px; font-weight: 700; line-height: 16px;
+}
+.day-cell .dc-count.zero { background: var(--bg); color: var(--text-mute); border: 1px solid var(--border); }
+
 /* Tabs */
 .tabs {
   display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto;
@@ -322,11 +344,13 @@ header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
   </div>
 </header>
 
-<!-- Today's plan banner -->
-<div id="todayBanner" class="today-banner empty" onclick="openTodayPlan()">
-  <span id="todayBannerText">☀️ 今日待做：无</span>
-  <span class="arrow">›</span>
+<!-- 待做餐 banner (跨日期聚合,可点开选日期) -->
+<div id="todayBanner" class="today-banner empty" onclick="openPlanDatePicker()">
+  <span id="todayBannerText">📋 待做餐：无 ▾</span>
+  <span class="arrow" id="todayBannerArrow">›</span>
 </div>
+<!-- 一周预览 (banner 下方) -->
+<div id="weekPreview" class="week-preview"></div>
 
 <!-- Top stats -->
 <div class="stats-bar">
@@ -577,16 +601,39 @@ function render() {
 }
 
 function renderTodayBanner() {
-  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
+  // 跨日期聚合：所有 planned_for 不空的菜
+  const allPlanned = state.dishes.filter(d => (d.planned_for || []).length > 0);
+  const total = allPlanned.reduce((sum, d) => sum + d.planned_for.length, 0);
   const el = document.getElementById('todayBanner');
   const txt = document.getElementById('todayBannerText');
-  if (todayDishes.length === 0) {
+  if (total === 0) {
     el.className = 'today-banner empty';
-    txt.textContent = '☀️ 今日待做：无';
+    txt.textContent = '📋 待做餐：无 ▾';
   } else {
     el.className = 'today-banner';
-    txt.textContent = `☀️ 今天要做 ${todayDishes.length} 道菜 · 点这里看`;
+    txt.textContent = `📋 待做餐 ${total} 道 · 点这里看 ▾`;
   }
+  renderWeekPreview();
+}
+
+function renderWeekPreview() {
+  const wrap = document.getElementById('weekPreview');
+  // 显示今天 + 后 6 天
+  const cells = [];
+  for (let i = 0; i < 7; i++) {
+    const date = daysFromNow(i);
+    const dishesOnDay = state.dishes.filter(d => (d.planned_for || []).includes(date));
+    const isToday = i === 0;
+    const label = i === 0 ? '今天' : i === 1 ? '明天' : i === 2 ? '后天' : weekdayName(date).replace('周', '');
+    cells.push(`
+      <div class="day-cell ${isToday ? 'today' : ''}" onclick="openPlanForDate('${date}')">
+        <div class="dc-name">${label}</div>
+        <div class="dc-date">${fmtDate(date)}</div>
+        <span class="dc-count ${dishesOnDay.length === 0 ? 'zero' : ''}">${dishesOnDay.length}</span>
+      </div>
+    `);
+  }
+  wrap.innerHTML = cells.join('');
 }
 
 function renderStats() {
@@ -1141,13 +1188,48 @@ function confirmCart() {
   toast(`${ids.length} 道菜已加入【${labelForDate(date)}】待做 ✅`);
 }
 
-// === Today Plan Modal ===
-function openTodayPlan() {
-  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
-  if (todayDishes.length === 0) { toast('今天没待做的菜', 'warn'); return; }
-  document.getElementById('todayPlanTitle').textContent = `📋 今日待做 · ${today}`;
-  document.getElementById('todayPlanBody').innerHTML = todayDishes.map(d => {
+// === 待做餐 Modal (跨日期,banner 点击或周预览点击) ===
+let planModalDate = today;   // 当前 modal 正在查看的日期
+
+function openPlanDatePicker() {
+  // banner 点开先弹一个居中的日期选择器
+  const popup = document.getElementById('datePickerPopup');
+  popup.innerHTML = '<div style="font-size:12px;color:var(--text-dim);padding:4px 14px;">看哪天的待做？</div>';
+  for (let i = 0; i < 7; i++) {
+    const date = daysFromNow(i);
+    const cnt = state.dishes.filter(d => (d.planned_for || []).includes(date)).length;
+    const btn = document.createElement('button');
+    btn.innerHTML = `${labelForDays(i)} <small>${fmtDate(date)} ${weekdayName(date)} · ${cnt} 道</small>`;
+    btn.onclick = () => {
+      popup.style.display = 'none';
+      popup.style.transform = '';
+      openPlanForDate(date);
+    };
+    popup.appendChild(btn);
+  }
+  popup.style.display = 'block';
+  popup.style.top = '40%';
+  popup.style.left = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+  setTimeout(() => {
+    document.addEventListener('click', e => {
+      if (popup && !popup.contains(e.target)) {
+        popup.style.display = 'none';
+        popup.style.transform = '';
+      }
+    }, { once: true });
+  }, 100);
+}
+
+function openPlanForDate(date) {
+  planModalDate = date;
+  const dayDishes = state.dishes.filter(d => (d.planned_for || []).includes(date));
+  if (dayDishes.length === 0) { toast(`${labelForDate(date)}没待做的菜`, 'warn'); return; }
+  const isPast = date < today;
+  document.getElementById('todayPlanTitle').textContent = `📋 ${labelForDate(date)}待做 · ${date} ${weekdayName(date)}`;
+  document.getElementById('todayPlanBody').innerHTML = dayDishes.map(d => {
     const photoHtml = d.photo ? `<img src="${d.photo}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;">` : '<div style="width:48px;height:48px;border-radius:6px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;">🍳</div>';
+    const canDo = !isPast;   // 过去的不能勾完成
     return `
     <div class="cart-item">
       <div class="ci-img" style="width:48px;height:48px;">${photoHtml}</div>
@@ -1155,7 +1237,9 @@ function openTodayPlan() {
         <div class="ci-name">${escape(d.name)}</div>
         <div class="ci-meta">⏱ ${d.time_min}min${avgR(d)?' · ★'+avgR(d).toFixed(1):''}</div>
       </div>
-      <button class="btn btn-good" style="flex:0;padding:8px 12px;border-radius:8px;" onclick="doneTodayDish('${d.id}')">✅ 完成</button>
+      ${canDo
+        ? `<button class="btn btn-good" style="flex:0;padding:8px 12px;border-radius:8px;" onclick="donePlanDish('${d.id}')">✅ 完成</button>`
+        : `<span style="font-size:11px;color:var(--text-mute);">已过期</span>`}
     </div>`;
   }).join('');
   document.getElementById('todayPlanBg').classList.add('show');
@@ -1163,33 +1247,35 @@ function openTodayPlan() {
 function closeTodayPlan() { document.getElementById('todayPlanBg').classList.remove('show'); }
 document.getElementById('todayPlanBg').addEventListener('click', e => { if (e.target.id === 'todayPlanBg') closeTodayPlan(); });
 
-function doneTodayDish(id) {
+function donePlanDish(id) {
   const d = state.dishes.find(x => x.id === id);
   if (!d) return;
   d.made_count = (d.made_count || 0) + 1;
   d.last_made = today;
-  d.planned_for = (d.planned_for || []).filter(x => x !== today);
+  d.planned_for = (d.planned_for || []).filter(x => x !== planModalDate);
   saveState();
-  openTodayPlan(); // 重新渲染（如果是空的会自动关闭 toast 但不关 modal）
-  if (state.dishes.filter(x => (x.planned_for||[]).includes(today)).length === 0) {
+  // 如果该日期还有菜就刷新，否则关 modal
+  const remain = state.dishes.filter(x => (x.planned_for || []).includes(planModalDate));
+  if (remain.length === 0) {
     closeTodayPlan();
-    toast('今日待做全部完成 🎉');
+    toast(`${labelForDate(planModalDate)}待做全部完成 🎉`);
   } else {
+    openPlanForDate(planModalDate);
     toast(`${d.name} 已完成 ✅`);
   }
 }
 function doneAllToday() {
-  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
-  if (todayDishes.length === 0) return;
-  if (!confirm(`把 ${todayDishes.length} 道菜全部标记为已完成？`)) return;
-  todayDishes.forEach(d => {
+  const dayDishes = state.dishes.filter(d => (d.planned_for || []).includes(planModalDate));
+  if (dayDishes.length === 0) return;
+  if (!confirm(`把 ${labelForDate(planModalDate)} ${dayDishes.length} 道菜全部标记为已完成？`)) return;
+  dayDishes.forEach(d => {
     d.made_count = (d.made_count || 0) + 1;
     d.last_made = today;
-    d.planned_for = (d.planned_for || []).filter(x => x !== today);
+    d.planned_for = (d.planned_for || []).filter(x => x !== planModalDate);
   });
   saveState();
   closeTodayPlan();
-  toast(`${todayDishes.length} 道菜全部完成 🎉`);
+  toast(`${dayDishes.length} 道菜全部完成 🎉`);
 }
 
 // === Detail Modal ===
