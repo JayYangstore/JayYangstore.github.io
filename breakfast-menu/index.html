@@ -26,7 +26,23 @@ header {
   padding: 8px 4px 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
 }
 header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
-header .date { font-size: 12px; color: var(--text-dim); }
+.header-actions { display: flex; gap: 6px; }
+.icon-btn {
+  background: var(--card); color: var(--text-dim); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.icon-btn:active { background: var(--accent); color: var(--bg); }
+
+/* Today's plan banner */
+.today-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+  color: var(--bg); padding: 12px 14px; border-radius: 12px;
+  margin-bottom: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(232,182,96,0.25);
+}
+.today-banner.empty { background: var(--card); color: var(--text-dim); cursor: default; box-shadow: none; }
+.today-banner .arrow { font-size: 18px; }
 
 /* Tabs */
 .tabs {
@@ -42,17 +58,11 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
 
 /* Stats bar */
-.stats-bar {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;
-}
-.stat {
-  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  padding: 10px 8px; text-align: center;
-}
+.stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
 .stat-num { font-size: 20px; font-weight: 700; color: var(--accent); }
 .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
-/* Section title */
 .section-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 600; color: var(--text-dim);
@@ -63,14 +73,12 @@ header .date { font-size: 12px; color: var(--text-dim); }
   font-size: 11px; color: var(--accent); font-weight: 700;
 }
 
-/* Card grid */
 .card-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
 }
 @media (min-width: 640px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 900px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Card */
 .card {
   background: var(--card); border: 1px solid var(--border); border-radius: 12px;
   overflow: hidden; box-shadow: var(--shadow); cursor: pointer;
@@ -94,6 +102,23 @@ header .date { font-size: 12px; color: var(--text-dim); }
   background: var(--accent); color: var(--bg);
   padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
 }
+.card-actions {
+  position: absolute; bottom: 6px; right: 6px;
+  display: flex; gap: 4px; z-index: 2;
+}
+.icon-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: none; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: transform 0.15s;
+}
+.icon-circle:active { transform: scale(0.9); }
+.icon-circle.plus { background: var(--accent); color: var(--bg); }
+.icon-circle.plus.recent { background: var(--good); color: #fff; }
+.icon-circle.cart { background: #6B8FE8; color: #fff; }
+.icon-circle.cart.in-cart { background: var(--warn); color: var(--bg); }
+
 .card-body { padding: 10px 12px; }
 .card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -102,52 +127,7 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .card-rating { color: var(--accent); font-weight: 700; }
 .card-rating.dim { color: var(--text-mute); }
 
-/* +1 button on card */
-.card-plus {
-  position: absolute; bottom: 6px; right: 6px;
-  width: 28px; height: 28px; border-radius: 50%;
-  background: var(--accent); color: var(--bg);
-  border: none; font-size: 16px; font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  transition: transform 0.15s;
-  z-index: 2;
-}
-.card-plus:active { transform: scale(0.9); background: var(--good); color: #fff; }
-.card-plus.recent { background: var(--good); color: #fff; }
-
-/* Header right icons */
-.header-actions { display: flex; gap: 6px; }
-.icon-btn {
-  background: var(--card); color: var(--text-dim); border: 1px solid var(--border);
-  padding: 6px 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
-}
-.icon-btn:active { background: var(--accent); color: var(--bg); }
-
-/* Photo upload preview */
-.photo-preview {
-  width: 100%; max-width: 200px; aspect-ratio: 1/1;
-  border-radius: 10px; background: var(--bg); border: 1px dashed var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; color: var(--text-dim); cursor: pointer;
-  overflow: hidden; margin-bottom: 6px;
-}
-.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Quick +N buttons */
-.quick-add-row { display: flex; gap: 6px; margin-top: 6px; }
-.quick-add-row button {
-  flex: 1; padding: 8px; border-radius: 8px; background: var(--bg);
-  color: var(--text-dim); border: 1px solid var(--border); font-size: 13px;
-  cursor: pointer;
-}
-.quick-add-row button:active { background: var(--accent); color: var(--bg); }
-
-/* Ranking */
-.ranking-list {
-  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-  padding: 4px 12px; margin-bottom: 8px;
-}
+.ranking-list { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 12px; margin-bottom: 8px; }
 .ranking-item {
   display: flex; align-items: center; padding: 10px 0;
   border-bottom: 1px solid var(--border); gap: 10px;
@@ -166,13 +146,10 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .rank-info { font-size: 11px; color: var(--text-dim); text-align: right; }
 .rank-info .rating { color: var(--accent); font-weight: 700; }
 
-/* Empty state */
-.empty {
-  text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 13px;
-}
+.empty { text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 13px; }
 .empty .emoji { font-size: 48px; margin-bottom: 12px; }
 
-/* FAB */
+/* FABs */
 .fab {
   position: fixed; bottom: 20px; right: 20px;
   width: 56px; height: 56px; border-radius: 50%;
@@ -182,7 +159,23 @@ header .date { font-size: 12px; color: var(--text-dim); }
 }
 .fab:active { transform: scale(0.95); }
 
-/* Modal */
+.cart-fab {
+  position: fixed; bottom: 20px; left: 20px;
+  min-width: 56px; height: 56px; padding: 0 16px; border-radius: 28px;
+  background: #6B8FE8; color: #fff; border: none;
+  font-size: 22px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(107,143,232,0.4); z-index: 100;
+  display: flex; align-items: center; gap: 6px;
+}
+.cart-fab:active { transform: scale(0.95); }
+.cart-fab .badge {
+  background: var(--bad); color: #fff;
+  border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: 700;
+  min-width: 20px; text-align: center;
+}
+.cart-fab.empty { opacity: 0.4; }
+
+/* Modals */
 .modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,0.7);
   z-index: 200; display: none; align-items: flex-end; justify-content: center;
@@ -211,12 +204,47 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .btn-primary { background: var(--accent); color: var(--bg); }
 .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
 .btn-danger { background: var(--bad); color: #fff; }
+.btn-good { background: var(--good); color: #fff; }
 
 .rating-row { display: flex; gap: 4px; }
-.rating-row .star {
-  font-size: 22px; cursor: pointer; color: var(--text-mute);
-}
+.rating-row .star { font-size: 22px; cursor: pointer; color: var(--text-mute); }
 .rating-row .star.on { color: var(--accent); }
+
+/* Photo */
+.photo-preview {
+  width: 100%; max-width: 200px; aspect-ratio: 1/1;
+  border-radius: 10px; background: var(--bg); border: 1px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
+  overflow: hidden; margin-bottom: 6px;
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: counter; }
+
+/* Ingredients */
+.ingredient-row {
+  display: flex; gap: 4px; margin-bottom: 4px; align-items: center;
+}
+.ingredient-row input { flex: 1; }
+.ingredient-row input.qty { max-width: 70px; }
+.ingredient-row input.unit { max-width: 70px; }
+.ingredient-row button {
+  background: transparent; border: none; color: var(--bad);
+  font-size: 18px; cursor: pointer; padding: 4px 8px;
+}
+.add-ingredient-btn {
+  background: transparent; border: 1px dashed var(--border);
+  color: var(--text-dim); padding: 8px; border-radius: 8px;
+  width: 100%; cursor: pointer; font-size: 13px; margin-top: 4px;
+}
+
+/* Detail modal adjust buttons */
+.adjust-row { display: flex; gap: 4px; }
+.adjust-row button {
+  flex: 1; padding: 8px 4px; border-radius: 8px; background: var(--bg);
+  color: var(--text-dim); border: 1px solid var(--border); font-size: 13px; cursor: pointer;
+}
+.adjust-row button:active { background: var(--accent); color: var(--bg); }
+.adjust-row button.plus:active { background: var(--good); color: #fff; }
 
 /* Toast */
 .toast {
@@ -229,10 +257,58 @@ header .date { font-size: 12px; color: var(--text-dim); }
 .toast.warn { background: var(--warn); }
 .toast.err { background: var(--bad); }
 
-/* Detail */
 .detail-recipe { margin-top: 14px; padding: 12px; background: var(--bg); border-radius: 8px; }
 .detail-recipe h3 { font-size: 13px; color: var(--accent); margin-bottom: 6px; }
 .detail-recipe pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.6; }
+
+/* Cart modal specific */
+.cart-list { margin: 12px 0; }
+.cart-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px;
+  background: var(--bg); border-radius: 8px; margin-bottom: 6px;
+}
+.cart-item .ci-img {
+  width: 48px; height: 48px; border-radius: 6px;
+  background: var(--card); flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.cart-item .ci-img img { width: 100%; height: 100%; object-fit: cover; }
+.cart-item .ci-name { flex: 1; font-size: 14px; font-weight: 600; }
+.cart-item .ci-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.cart-item button {
+  background: transparent; border: none; color: var(--bad);
+  font-size: 18px; cursor: pointer; padding: 6px 10px;
+}
+
+.shopping-list {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px; margin: 10px 0;
+}
+.shopping-list h4 { font-size: 12px; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.shopping-list ul { list-style: none; padding: 0; margin: 0; }
+.shopping-list li {
+  display: flex; justify-content: space-between; padding: 4px 0;
+  font-size: 13px; border-bottom: 1px solid var(--border);
+}
+.shopping-list li:last-child { border-bottom: none; }
+.shopping-list li .qty { color: var(--accent); font-weight: 600; }
+.shopping-list .empty-warn {
+  color: var(--warn); font-size: 12px; padding: 6px 0;
+}
+
+/* Date picker popup (from cart icon) */
+.date-picker-popup {
+  position: fixed; background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px; z-index: 300;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5); min-width: 160px;
+}
+.date-picker-popup button {
+  display: block; width: 100%; padding: 10px 14px;
+  background: transparent; border: none; color: var(--text);
+  text-align: left; cursor: pointer; border-radius: 6px; font-size: 14px;
+}
+.date-picker-popup button:active { background: var(--accent); color: var(--bg); }
+.date-picker-popup button small { color: var(--text-dim); display: block; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -243,8 +319,13 @@ header .date { font-size: 12px; color: var(--text-dim); }
     <button class="icon-btn" onclick="exportData()" title="导出 JSON 备份">💾</button>
     <button class="icon-btn" onclick="importData()" title="导入 JSON">📥</button>
   </div>
-  <div class="date" id="todayDate" style="display:none"></div>
 </header>
+
+<!-- Today's plan banner -->
+<div id="todayBanner" class="today-banner empty" onclick="openTodayPlan()">
+  <span id="todayBannerText">☀️ 今日待做：无</span>
+  <span class="arrow">›</span>
+</div>
 
 <!-- Top stats -->
 <div class="stats-bar">
@@ -252,20 +333,16 @@ header .date { font-size: 12px; color: var(--text-dim); }
   <div class="stat"><div class="stat-num" id="statBreakfast">0</div><div class="stat-label" id="breakfastLabel">早餐档</div></div>
   <div class="stat"><div class="stat-num" id="statUrgent">0</div><div class="stat-label" id="urgentLabel">待翻牌</div></div>
 </div>
-<div style="text-align:center;font-size:11px;color:var(--text-mute);margin:-8px 0 14px;" id="todayDate"></div>
 
 <!-- Ranking -->
-<div class="section-title">
-  🏆 排行榜 <span class="count" id="rankingCount">0</span>
-</div>
+<div class="section-title">🏆 排行榜 <span class="count" id="rankingCount">0</span></div>
 <div class="tabs" id="rankTabs" style="margin-bottom:8px;">
   <div class="tab active" data-rank="all">全部</div>
   <div class="tab" data-rank="breakfast">早餐榜</div>
   <div class="tab" data-rank="dinner">正餐榜</div>
 </div>
 <div id="rankingList" class="empty">
-  <div class="emoji">🍽️</div>
-  还没评分记录<br>做完早餐打个分吧
+  <div class="emoji">🍽️</div>还没评分记录<br>做完打个分吧
 </div>
 
 <!-- Tabs -->
@@ -278,14 +355,48 @@ header .date { font-size: 12px; color: var(--text-dim); }
 
 <!-- Card grid -->
 <div class="card-grid" id="cardGrid">
-  <div class="empty" style="grid-column: 1/-1;">
-    <div class="emoji">👨‍🍳</div>
-    还没有菜,点右下角 + 加第一道
+  <div class="empty" style="grid-column: 1/-1;"><div class="emoji">👨‍🍳</div>还没有菜</div>
+</div>
+
+<!-- FAB: 加菜 -->
+<button class="fab" onclick="openAddModal()">+</button>
+
+<!-- FAB: 购物车 -->
+<button id="cartFab" class="cart-fab empty" onclick="openCart()">
+  🛒 <span class="badge" id="cartBadge" style="display:none">0</span>
+</button>
+
+<!-- Today Plan Modal -->
+<div class="modal-bg" id="todayPlanBg">
+  <div class="modal">
+    <h2 id="todayPlanTitle">📋 今日待做</h2>
+    <div id="todayPlanBody"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeTodayPlan()">关闭</button>
+      <button id="todayPlanDoneAll" class="btn btn-good" onclick="doneAllToday()">✅ 全部完成</button>
+    </div>
   </div>
 </div>
 
-<!-- FAB -->
-<button class="fab" onclick="openAddModal()">+</button>
+<!-- Cart Modal -->
+<div class="modal-bg" id="cartBg">
+  <div class="modal" style="max-height:95vh;">
+    <h2>🛒 购物车 <span id="cartTotalCount" style="color:var(--text-dim);font-size:14px;font-weight:400;"></span></h2>
+    <div class="tabs" id="cartTabs" style="margin-bottom:10px;">
+      <!-- 日期 tab 动态生成 -->
+    </div>
+    <div class="shopping-list" id="shoppingListWrap" style="display:none;">
+      <h4>📦 采购清单</h4>
+      <ul id="shoppingListUl"></ul>
+    </div>
+    <div class="cart-list" id="cartList"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeCart()">关闭</button>
+      <button class="btn btn-primary" onclick="copyShoppingList()">📋 复制采购清单</button>
+      <button class="btn btn-good" onclick="confirmCart()">✅ 确认完成</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add/Edit Modal -->
 <div class="modal-bg" id="modalBg">
@@ -340,8 +451,13 @@ header .date { font-size: 12px; color: var(--text-dim); }
       </div>
     </div>
     <div class="form-group">
-      <label>菜谱（早餐可跳过）</label>
-      <textarea id="inpRecipe" placeholder="食材/步骤/小贴士（早餐留空也行）"></textarea>
+      <label>📖 做法（自由文字，早餐可跳过）</label>
+      <textarea id="inpRecipe" placeholder="步骤/小贴士"></textarea>
+    </div>
+    <div class="form-group">
+      <label>📦 食材清单（点 [+] 添加每道菜需要的食材）</label>
+      <div id="ingredientsList"></div>
+      <button type="button" class="add-ingredient-btn" onclick="addIngredientRow()">+ 添加食材</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeModal()">取消</button>
@@ -360,76 +476,120 @@ header .date { font-size: 12px; color: var(--text-dim); }
     <div id="detailBody"></div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeDetail()">关闭</button>
-      <button class="btn btn-primary" onclick="markMadeToday()">今天做了</button>
+      <button class="btn btn-primary" onclick="editFromDetail()">✏️ 编辑</button>
     </div>
   </div>
 </div>
+
+<!-- Date picker popup (动态位置) -->
+<div id="datePickerPopup" class="date-picker-popup" style="display:none"></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const STORAGE_KEY = 'breakfast-menu-v1';
-const PHOTO_KEY = 'breakfast-menu-photos-v1';
 const DATA_VERSION = 1;
 
 let state = loadState();
 let editingId = null;
 let currentTab = 'all';
 let currentRating = { banli: 0, niuniu: 0, wife: 0 };
-let currentPhoto = null;   // base64 dataURL
+let currentPhoto = null;
 let currentRankTab = 'all';
-let lastPlusTap = {};      // {id: timestamp} 用于短时间 +N 防误点
+let currentIngredients = [];   // 编辑 modal 的临时食材
+let currentCartTab = null;     // 购物车 modal 当前选中的日期
+let lastPlusTap = {};
+let datePickerCallback = null;
 
 // === Storage ===
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { version: DATA_VERSION, dishes: [], _seed: true };
+    if (!raw) return { version: DATA_VERSION, dishes: [], cart: {} };
     const d = JSON.parse(raw);
-    if (d.version !== DATA_VERSION) return { version: DATA_VERSION, dishes: d.dishes || [], _seed: true };
+    if (d.version !== DATA_VERSION) return { version: DATA_VERSION, dishes: d.dishes || [], cart: {} };
+    if (!d.cart) d.cart = {};
+    // 兼容性：给旧 dish 补字段
+    d.dishes.forEach(x => {
+      x.ingredients = x.ingredients || [];
+      x.planned_for = x.planned_for || [];
+    });
     return d;
-  } catch { return { version: DATA_VERSION, dishes: [], _seed: true }; }
+  } catch { return { version: DATA_VERSION, dishes: [], cart: {} }; }
 }
 
 function saveState() {
-  state._seed = false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   render();
 }
 
-// === Date ===
+// === Date helpers ===
 const now = new Date();
 const today = now.toISOString().slice(0, 10);
+const weekdayName = (iso) => { const d = new Date(iso); return '周' + '日一二三四五六'[d.getDay()]; };
+const fmtDate = (iso) => { const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}`; };
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
-document.getElementById('todayDate').textContent = `${today} · 周${'日一二三四五六'[now.getDay()]}`;
+const daysFromNow = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const labelForDays = (n) => {
+  if (n === 0) return '今天';
+  if (n === 1) return '明天';
+  if (n === 2) return '后天';
+  if (n === 3) return '大后天';
+  return daysFromNow(n);
+};
 
-// === Seed (placeholder 启动种子,等真照片来替换) ===
+// === Seed ===
 function seedIfEmpty() {
   if (state.dishes.length > 0) return;
-  const seeds = [
-    { id: 'd_seed_001', name: '番茄鸡蛋三明治', category: 'breakfast-fast', time_min: 15, photo: null, made_count: 8, last_made: daysAgo(12), ratings: { banli: 5, niuniu: 4, wife: null }, recipe: null, tags: ['快手','板栗最爱'] },
-    { id: 'd_seed_002', name: '牛奶麦片', category: 'breakfast-fast', time_min: 5, photo: null, made_count: 15, last_made: daysAgo(2), ratings: { banli: 4, niuniu: 5, wife: 3 }, recipe: null, tags: ['极速','妞妞最爱'] },
-    { id: 'd_seed_003', name: '煎蛋吐司', category: 'breakfast-fast', time_min: 10, photo: null, made_count: 6, last_made: daysAgo(7), ratings: { banli: 5, niuniu: 3, wife: 4 }, recipe: null, tags: ['快手'] },
-    { id: 'd_seed_004', name: '葱油拌面', category: 'breakfast-slow', time_min: 25, photo: null, made_count: 3, last_made: daysAgo(20), ratings: { banli: 4, niuniu: 2, wife: 5 }, recipe: null, tags: ['慢工','老婆最爱'] },
-    { id: 'd_seed_005', name: '红烧肉', category: 'dinner', time_min: 90, photo: null, made_count: 2, last_made: daysAgo(45), ratings: { banli: 5, niuniu: 4, wife: 5 }, recipe: '食材：五花肉 500g / 冰糖 / 老抽 / 生抽 / 八角\n步骤：① 五花肉切块焯水 ② 锅中炒糖色 ③ 下肉翻炒上色 ④ 加水没过肉，大火烧开转小火 1 小时\n小贴士：糖色别炒糊，会苦', tags: ['周末大菜'] },
-    { id: 'd_seed_006', name: '番茄鸡蛋面', category: 'breakfast-fast', time_min: 12, photo: null, made_count: 4, last_made: daysAgo(5), ratings: { banli: 4, niuniu: 5, wife: 4 }, recipe: null, tags: ['快手'] },
+  state.dishes = [
+    { id: 'd_seed_001', name: '番茄鸡蛋三明治', category: 'breakfast-fast', time_min: 15, photo: null, made_count: 8, last_made: daysAgo(12), ratings: { banli: 5, niuniu: 4, wife: null }, recipe: null,
+      ingredients: [{name:'吐司',qty:2,unit:'片'},{name:'鸡蛋',qty:1,unit:'个'},{name:'番茄',qty:0.5,unit:'个'},{name:'生菜',qty:2,unit:'片'}],
+      planned_for: [], tags: ['快手','板栗最爱'] },
+    { id: 'd_seed_002', name: '牛奶麦片', category: 'breakfast-fast', time_min: 5, photo: null, made_count: 15, last_made: daysAgo(2), ratings: { banli: 4, niuniu: 5, wife: 3 }, recipe: null,
+      ingredients: [{name:'牛奶',qty:250,unit:'ml'},{name:'麦片',qty:50,unit:'g'}],
+      planned_for: [], tags: ['极速','妞妞最爱'] },
+    { id: 'd_seed_003', name: '煎蛋吐司', category: 'breakfast-fast', time_min: 10, photo: null, made_count: 6, last_made: daysAgo(7), ratings: { banli: 5, niuniu: 3, wife: 4 }, recipe: null,
+      ingredients: [{name:'吐司',qty:2,unit:'片'},{name:'鸡蛋',qty:1,unit:'个'}],
+      planned_for: [], tags: ['快手'] },
+    { id: 'd_seed_004', name: '葱油拌面', category: 'breakfast-slow', time_min: 25, photo: null, made_count: 3, last_made: daysAgo(20), ratings: { banli: 4, niuniu: 2, wife: 5 }, recipe: null,
+      ingredients: [{name:'面条',qty:1,unit:'把'},{name:'葱',qty:3,unit:'根'},{name:'生抽',qty:2,unit:'勺'},{name:'猪油',qty:1,unit:'勺'}],
+      planned_for: [], tags: ['慢工','老婆最爱'] },
+    { id: 'd_seed_005', name: '红烧肉', category: 'dinner', time_min: 90, photo: null, made_count: 2, last_made: daysAgo(45), ratings: { banli: 5, niuniu: 4, wife: 5 },
+      recipe: '① 五花肉切块焯水\n② 锅中炒糖色（冰糖小火）\n③ 下肉翻炒上色\n④ 加老抽生抽八角，水没过肉\n⑤ 大火烧开转小火 1 小时，大火收汁',
+      ingredients: [{name:'五花肉',qty:500,unit:'g'},{name:'冰糖',qty:30,unit:'g'},{name:'老抽',qty:2,unit:'勺'},{name:'生抽',qty:3,unit:'勺'},{name:'八角',qty:2,unit:'个'}],
+      planned_for: [], tags: ['周末大菜'] },
+    { id: 'd_seed_006', name: '番茄鸡蛋面', category: 'breakfast-fast', time_min: 12, photo: null, made_count: 4, last_made: daysAgo(5), ratings: { banli: 4, niuniu: 5, wife: 4 }, recipe: null,
+      ingredients: [{name:'面条',qty:1,unit:'把'},{name:'番茄',qty:1,unit:'个'},{name:'鸡蛋',qty:1,unit:'个'}],
+      planned_for: [], tags: ['快手'] },
   ];
-  state.dishes = seeds;
   saveState();
 }
-
 seedIfEmpty();
 
 // === Render ===
 function render() {
+  renderTodayBanner();
   renderStats();
   renderRanking();
   renderGrid();
+  renderCartFab();
+}
+
+function renderTodayBanner() {
+  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
+  const el = document.getElementById('todayBanner');
+  const txt = document.getElementById('todayBannerText');
+  if (todayDishes.length === 0) {
+    el.className = 'today-banner empty';
+    txt.textContent = '☀️ 今日待做：无';
+  } else {
+    el.className = 'today-banner';
+    txt.textContent = `☀️ 今天要做 ${todayDishes.length} 道菜 · 点这里看`;
+  }
 }
 
 function renderStats() {
   document.getElementById('statTotal').textContent = state.dishes.length;
-  // 第二格：当前 Tab 的菜数 +1（全部=全部, 早餐=早餐档总数, 正餐=正餐总数）
   const tabMap = {
     'all': { filter: () => true, label: '全部' },
     'breakfast-fast': { filter: d => d.category === 'breakfast-fast', label: '⚡快手' },
@@ -439,15 +599,12 @@ function renderStats() {
   const cfg = tabMap[currentTab] || tabMap['all'];
   document.getElementById('statBreakfast').textContent = state.dishes.filter(cfg.filter).length;
   document.getElementById('breakfastLabel').textContent = cfg.label;
-  // 第三格：当前 Tab 内 30 天没做（待翻牌）
   const urgentDays = daysAgo(30);
   const urgent = state.dishes.filter(d => cfg.filter(d) && d.last_made < urgentDays).length;
   document.getElementById('statUrgent').textContent = urgent;
-  document.getElementById('urgentLabel').textContent = '待翻牌';
 }
 
 function getRanking(scope) {
-  // 综合评分：平均分（取所有非空），降序
   let list = state.dishes;
   if (scope === 'breakfast') list = list.filter(d => d.category.startsWith('breakfast'));
   else if (scope === 'dinner') list = list.filter(d => d.category === 'dinner');
@@ -483,54 +640,6 @@ function renderRanking() {
   `).join('');
 }
 
-function renderGrid() {
-  const grid = document.getElementById('cardGrid');
-  let list = [...state.dishes];
-  if (currentTab !== 'all') list = list.filter(d => d.category === currentTab);
-
-  // 30 天没做的标 urgent
-  const urgentDays = daysAgo(30);
-  list.sort((a, b) => {
-    const aUrgent = a.last_made < urgentDays;
-    const bUrgent = b.last_made < urgentDays;
-    if (aUrgent !== bUrgent) return aUrgent ? -1 : 1;
-    return a.name.localeCompare(b.name, 'zh');
-  });
-
-  if (list.length === 0) {
-    grid.innerHTML = '<div class="empty" style="grid-column: 1/-1;"><div class="emoji">👨‍🍳</div>这个分类还没有菜</div>';
-    return;
-  }
-
-  grid.innerHTML = list.map(d => {
-    const urgent = d.last_made < urgentDays;
-    const avgRating = avgR(d);
-    const photoHtml = d.photo
-      ? `<img src="${d.photo}" loading="lazy">`
-      : `<span class="placeholder">🍳</span>`;
-    return `
-    <div class="card ${urgent ? 'urgent' : ''}" onclick="openDetail('${d.id}')">
-      <div class="card-img">
-        ${photoHtml}
-        <div class="time-badge">⏱ ${d.time_min}min</div>
-        ${d.made_count > 0 ? `<div class="count-badge">×${d.made_count}</div>` : ''}
-        <button class="card-plus ${d.last_made === today ? 'recent' : ''}"
-          onclick="event.stopPropagation();quickPlus('${d.id}', event)"
-          title="${d.last_made === today ? '今天已做过 +1' : '点一下 +1（长按选更多）'}">
-          ${d.last_made === today ? '✓' : '+'}
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="card-name">${escape(d.name)}${urgent ? ' 🔔' : ''}</div>
-        <div class="card-meta">
-          <span>${lastMadeLabel(d.last_made)}</span>
-          <span class="card-rating ${avgRating ? '' : 'dim'}">${avgRating ? '★' + avgRating.toFixed(1) : '未评'}</span>
-        </div>
-      </div>
-    </div>
-  `}).join('');
-}
-
 function avgR(d) {
   const rs = Object.values(d.ratings || {}).filter(r => r != null);
   return rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : 0;
@@ -546,15 +655,67 @@ function lastMadeLabel(lm) {
   return `${Math.floor(days/30)}个月前 🔔`;
 }
 
+function renderGrid() {
+  const grid = document.getElementById('cardGrid');
+  let list = [...state.dishes];
+  if (currentTab !== 'all') list = list.filter(d => d.category === currentTab);
+  const urgentDays = daysAgo(30);
+  list.sort((a, b) => {
+    const aU = a.last_made < urgentDays, bU = b.last_made < urgentDays;
+    if (aU !== bU) return aU ? -1 : 1;
+    return a.name.localeCompare(b.name, 'zh');
+  });
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column: 1/-1;"><div class="emoji">👨‍🍳</div>这个分类还没有菜</div>';
+    return;
+  }
+  grid.innerHTML = list.map(d => {
+    const urgent = d.last_made < urgentDays;
+    const avgRating = avgR(d);
+    const photoHtml = d.photo ? `<img src="${d.photo}" loading="lazy">` : `<span class="placeholder">🍳</span>`;
+    const isRecent = d.last_made === today;
+    return `
+    <div class="card ${urgent ? 'urgent' : ''}" onclick="openDetail('${d.id}')">
+      <div class="card-img">
+        ${photoHtml}
+        <div class="time-badge">⏱ ${d.time_min}min</div>
+        ${d.made_count > 0 ? `<div class="count-badge">×${d.made_count}</div>` : ''}
+        <div class="card-actions">
+          <button class="icon-circle cart" onclick="event.stopPropagation();openDatePicker(event, '${d.id}')" title="加入购物车">🛒</button>
+          <button class="icon-circle plus ${isRecent ? 'recent' : ''}"
+            onclick="event.stopPropagation();quickPlus('${d.id}')"
+            title="${isRecent ? '今天已做过 +1' : '点 +1（双击 +3，长按自定）'}">${isRecent ? '✓' : '+'}</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${escape(d.name)}${urgent ? ' 🔔' : ''}</div>
+        <div class="card-meta">
+          <span>${lastMadeLabel(d.last_made)}</span>
+          <span class="card-rating ${avgRating ? '' : 'dim'}">${avgRating ? '★' + avgRating.toFixed(1) : '未评'}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function escape(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
 // === Tabs ===
-document.querySelectorAll('.tab').forEach(t => {
+document.querySelectorAll('#tabs .tab').forEach(t => {
   t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#tabs .tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     currentTab = t.dataset.cat;
-    renderGrid();
+    renderGrid(); renderStats();
+  });
+});
+
+document.querySelectorAll('#rankTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#rankTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentRankTab = t.dataset.rank;
+    renderRanking();
   });
 });
 
@@ -568,6 +729,7 @@ function openAddModal() {
   document.getElementById('inpRecipe').value = '';
   document.getElementById('deleteBtn').style.display = 'none';
   currentPhoto = null; showPhotoPreview(null);
+  currentIngredients = []; renderIngredientRows();
   setRating('banli', 0); setRating('niuniu', 0); setRating('wife', 0);
   showModal();
 }
@@ -576,13 +738,14 @@ function openEditModal(id) {
   const d = state.dishes.find(x => x.id === id);
   if (!d) return;
   editingId = id;
-  document.getElementById('modalTitle').textContent = '✏️ 编辑';
+  document.getElementById('modalTitle').textContent = '✏️ 编辑 · ' + d.name;
   document.getElementById('inpName').value = d.name;
   document.getElementById('inpCategory').value = d.category;
   document.getElementById('inpTime').value = d.time_min;
   document.getElementById('inpRecipe').value = d.recipe || '';
   document.getElementById('deleteBtn').style.display = 'block';
   currentPhoto = d.photo || null; showPhotoPreview(currentPhoto);
+  currentIngredients = JSON.parse(JSON.stringify(d.ingredients || [])); renderIngredientRows();
   setRating('banli', d.ratings?.banli || 0);
   setRating('niuniu', d.ratings?.niuniu || 0);
   setRating('wife', d.ratings?.wife || 0);
@@ -591,10 +754,7 @@ function openEditModal(id) {
 
 function showModal() { document.getElementById('modalBg').classList.add('show'); }
 function closeModal() { document.getElementById('modalBg').classList.remove('show'); }
-
-document.getElementById('modalBg').addEventListener('click', e => {
-  if (e.target.id === 'modalBg') closeModal();
-});
+document.getElementById('modalBg').addEventListener('click', e => { if (e.target.id === 'modalBg') closeModal(); });
 
 // === Rating ===
 ['banli','niuniu','wife'].forEach(role => {
@@ -606,14 +766,67 @@ document.getElementById('modalBg').addEventListener('click', e => {
     }
   });
 });
-
 function setRating(role, v) {
   currentRating[role] = v;
-  const container = document.getElementById('rate' + role[0].toUpperCase() + role.slice(1));
-  container.querySelectorAll('.star').forEach(s => {
-    s.classList.toggle('on', parseInt(s.dataset.v) <= v);
-  });
+  const c = document.getElementById('rate' + role[0].toUpperCase() + role.slice(1));
+  c.querySelectorAll('.star').forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= v));
 }
+
+// === Ingredients ===
+function addIngredientRow(data) {
+  if (!data) data = { name: '', qty: '', unit: '' };
+  currentIngredients.push(data);
+  renderIngredientRows();
+}
+function removeIngredientRow(i) {
+  currentIngredients.splice(i, 1);
+  renderIngredientRows();
+}
+function renderIngredientRows() {
+  const wrap = document.getElementById('ingredientsList');
+  if (currentIngredients.length === 0) {
+    wrap.innerHTML = '<div style="color:var(--text-mute);font-size:12px;padding:6px 0;">还没加食材，点下面 [+] 添加</div>';
+    return;
+  }
+  wrap.innerHTML = currentIngredients.map((ing, i) => `
+    <div class="ingredient-row">
+      <input class="name" placeholder="食材名" value="${escape(ing.name||'')}" oninput="currentIngredients[${i}].name=this.value">
+      <input class="qty" type="number" step="0.5" placeholder="量" value="${ing.qty||''}" oninput="currentIngredients[${i}].qty=parseFloat(this.value)||''">
+      <input class="unit" placeholder="单位" value="${escape(ing.unit||'')}" oninput="currentIngredients[${i}].unit=this.value">
+      <button onclick="removeIngredientRow(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+// === Photo upload ===
+function onPhotoSelected(ev) {
+  const file = ev.target.files[0]; if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('请选图片', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 800;
+      let w = img.width, h = img.height;
+      if (w > h && w > max) { h = h * max / w; w = max; }
+      else if (h > max) { w = w * max / h; h = max; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPhoto = canvas.toDataURL('image/jpeg', 0.7);
+      showPhotoPreview(currentPhoto);
+      toast('照片已加载 ✅');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function showPhotoPreview(dataUrl) {
+  const preview = document.getElementById('photoPreview');
+  if (dataUrl) preview.innerHTML = `<img src="${dataUrl}">`;
+  else preview.innerHTML = '<span id="photoPreviewText">点击上传照片</span>';
+}
+function clearPhoto() { currentPhoto = null; showPhotoPreview(null); document.getElementById('inpPhoto').value = ''; }
 
 // === Save ===
 function saveDish() {
@@ -629,11 +842,15 @@ function saveDish() {
       wife: currentRating.wife || null,
     },
     recipe: document.getElementById('inpRecipe').value.trim() || null,
+    ingredients: currentIngredients.filter(x => x.name && x.name.trim()).map(x => ({
+      name: x.name.trim(),
+      qty: typeof x.qty === 'number' ? x.qty : (parseFloat(x.qty) || 0),
+      unit: (x.unit || '').trim(),
+    })),
   };
   if (editingId) {
     const d = state.dishes.find(x => x.id === editingId);
     Object.assign(d, data);
-    // photo：仅当 currentPhoto 有值才覆盖（用户点了"清除"则为 null）
     d.photo = currentPhoto;
     toast('已更新 ✅');
   } else {
@@ -643,6 +860,7 @@ function saveDish() {
       photo: currentPhoto,
       made_count: 0,
       last_made: null,
+      planned_for: [],
       tags: [],
     });
     toast('已加 ✅');
@@ -650,21 +868,339 @@ function saveDish() {
   saveState();
   closeModal();
 }
-
 function deleteDish() {
   if (!editingId) return;
   if (!confirm('确定删除这道菜？')) return;
   state.dishes = state.dishes.filter(x => x.id !== editingId);
+  // 也清理购物车里残留
+  for (const date of Object.keys(state.cart)) {
+    state.cart[date] = state.cart[date].filter(id => state.dishes.find(d => d.id === id));
+    if (state.cart[date].length === 0) delete state.cart[date];
+  }
   saveState();
   closeModal();
   toast('已删除');
 }
 
-// === Detail ===
+// === Quick +N (卡片右下 + 按钮) ===
+function quickPlus(id) {
+  const d = state.dishes.find(x => x.id === id);
+  if (!d) return;
+  const t0 = lastPlusTap[id] || 0;
+  if (Date.now() - t0 < 400) {
+    addCount(d, 3); lastPlusTap[id] = 0;
+    toast(`${d.name} +3`);
+  } else {
+    addCount(d, 1); lastPlusTap[id] = Date.now();
+  }
+  saveState();
+}
+function addCount(d, n) {
+  d.made_count = (d.made_count || 0) + n;
+  d.last_made = today;
+  render();
+}
+// 长按 -N/+N 自定义
+let longPressTimer = null;
+document.addEventListener('mousedown', e => {
+  const btn = e.target.closest && e.target.closest('.icon-circle.plus');
+  if (!btn) return;
+  const id = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+  longPressTimer = setTimeout(() => {
+    const d = state.dishes.find(x => x.id === id);
+    if (!d) return;
+    const v = prompt(`${d.name} 调整次数（正数加 / 负数减），例如 +3 或 -2`, '+1');
+    if (v === null) return;
+    const n = parseInt(v) || 0;
+    if (n === 0) return;
+    d.made_count = Math.max(0, (d.made_count || 0) + n);
+    if (n > 0) d.last_made = today;
+    saveState();
+    toast(`${d.name} ${n>0?'+':''}${n}`);
+  }, 600);
+});
+document.addEventListener('mouseup', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
+document.addEventListener('contextmenu', e => { if (e.target.classList && e.target.classList.contains('icon-circle')) e.preventDefault(); });
+
+// === Date picker popup (购物车图标) ===
+function openDatePicker(ev, dishId) {
+  ev.stopPropagation();
+  const rect = ev.currentTarget.getBoundingClientRect();
+  const popup = document.getElementById('datePickerPopup');
+  popup.innerHTML = '';
+  [1, 2, 3].forEach(n => {
+    const date = daysFromNow(n);
+    const btn = document.createElement('button');
+    btn.innerHTML = `${labelForDays(n)} <small>${fmtDate(date)} ${weekdayName(date)}</small>`;
+    btn.onclick = () => {
+      addToCart(dishId, date);
+      popup.style.display = 'none';
+    };
+    popup.appendChild(btn);
+  });
+  popup.style.display = 'block';
+  // 定位
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  if (left + 180 > window.innerWidth) left = window.innerWidth - 190;
+  popup.style.top = top + 'px';
+  popup.style.left = Math.max(8, left) + 'px';
+  setTimeout(() => {
+    document.addEventListener('click', closeDatePickerOnce, { once: true });
+  }, 100);
+}
+function closeDatePickerOnce(e) {
+  const popup = document.getElementById('datePickerPopup');
+  if (popup && !popup.contains(e.target)) popup.style.display = 'none';
+}
+
+function addToCart(dishId, date) {
+  if (!state.cart[date]) state.cart[date] = [];
+  if (state.cart[date].includes(dishId)) {
+    toast('这道菜已在购物车', 'warn');
+    return;
+  }
+  state.cart[date].push(dishId);
+  saveState();
+  const d = state.dishes.find(x => x.id === dishId);
+  toast(`${d.name} → ${labelForDate(date)}的菜单 🛒`);
+}
+
+function cartCount() {
+  let n = 0;
+  for (const k of Object.keys(state.cart)) n += state.cart[k].length;
+  return n;
+}
+
+function renderCartFab() {
+  const fab = document.getElementById('cartFab');
+  const badge = document.getElementById('cartBadge');
+  const n = cartCount();
+  if (n === 0) {
+    fab.classList.add('empty');
+    badge.style.display = 'none';
+  } else {
+    fab.classList.remove('empty');
+    badge.style.display = '';
+    badge.textContent = n;
+  }
+}
+
+function labelForDate(iso) {
+  const n = Math.round((new Date(iso) - new Date(today)) / 86400000);
+  return labelForDays(n);
+}
+
+// === Cart Modal ===
+function openCart() {
+  if (cartCount() === 0) { toast('购物车是空的，先点卡片上的 🛒 加菜'); return; }
+  // 默认选最早的日期
+  const dates = Object.keys(state.cart).filter(d => state.cart[d].length > 0).sort();
+  if (!currentCartTab || !state.cart[currentCartTab]) currentCartTab = dates[0];
+  renderCartTabs();
+  renderCartList();
+  document.getElementById('cartBg').classList.add('show');
+}
+function closeCart() { document.getElementById('cartBg').classList.remove('show'); }
+document.getElementById('cartBg').addEventListener('click', e => { if (e.target.id === 'cartBg') closeCart(); });
+
+function renderCartTabs() {
+  const dates = Object.keys(state.cart).filter(d => state.cart[d].length > 0).sort();
+  const wrap = document.getElementById('cartTabs');
+  wrap.innerHTML = dates.map(d => `
+    <div class="tab ${d === currentCartTab ? 'active' : ''}" onclick="currentCartTab='${d}';renderCartTabs();renderCartList();">
+      ${labelForDate(d)} · ${state.cart[d].length}道
+    </div>
+  `).join('');
+}
+
+function renderCartList() {
+  const ids = state.cart[currentCartTab] || [];
+  const list = document.getElementById('cartList');
+  document.getElementById('cartTotalCount').textContent = `共 ${cartCount()} 道菜`;
+  if (ids.length === 0) {
+    list.innerHTML = '<div class="empty" style="padding:20px;"><div class="emoji">🛒</div>这个日期没菜</div>';
+    document.getElementById('shoppingListWrap').style.display = 'none';
+    return;
+  }
+  list.innerHTML = ids.map(id => {
+    const d = state.dishes.find(x => x.id === id);
+    if (!d) return '';
+    const photoHtml = d.photo ? `<img src="${d.photo}">` : '<span style="font-size:24px;">🍳</span>';
+    return `
+    <div class="cart-item">
+      <div class="ci-img">${photoHtml}</div>
+      <div style="flex:1">
+        <div class="ci-name">${escape(d.name)}</div>
+        <div class="ci-meta">⏱ ${d.time_min}min${avgR(d)?' · ★'+avgR(d).toFixed(1):''}</div>
+      </div>
+      <button onclick="removeFromCart('${id}')">×</button>
+    </div>`;
+  }).join('');
+  renderShoppingList(ids);
+}
+
+function removeFromCart(id) {
+  if (!state.cart[currentCartTab]) return;
+  state.cart[currentCartTab] = state.cart[currentCartTab].filter(x => x !== id);
+  if (state.cart[currentCartTab].length === 0) {
+    delete state.cart[currentCartTab];
+    const dates = Object.keys(state.cart).filter(d => state.cart[d].length > 0).sort();
+    currentCartTab = dates[0] || null;
+  }
+  saveState();
+  if (!currentCartTab) closeCart();
+  else { renderCartTabs(); renderCartList(); }
+}
+
+function renderShoppingList(ids) {
+  const wrap = document.getElementById('shoppingListWrap');
+  const ul = document.getElementById('shoppingListUl');
+  // 同食材去重累加
+  const map = {}; // name -> {qty, unit, sources}
+  let noIng = [];
+  ids.forEach(id => {
+    const d = state.dishes.find(x => x.id === id);
+    if (!d) return;
+    if (!d.ingredients || d.ingredients.length === 0) {
+      noIng.push(d.name);
+      return;
+    }
+    d.ingredients.forEach(ing => {
+      const k = ing.name.trim();
+      if (!map[k]) map[k] = { qty: 0, unit: ing.unit || '', sources: [] };
+      map[k].qty += (parseFloat(ing.qty) || 0);
+      if (!map[k].sources.includes(d.name)) map[k].sources.push(d.name);
+    });
+  });
+  const keys = Object.keys(map);
+  if (keys.length === 0 && noIng.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  let html = '';
+  if (keys.length > 0) {
+    html += keys.sort().map(k => `
+      <li>
+        <span>${escape(k)} <span style="color:var(--text-mute);font-size:11px;">· ${map[k].sources.map(escape).join('/')}</span></span>
+        <span class="qty">${map[k].qty % 1 === 0 ? map[k].qty : map[k].qty.toFixed(1)} ${escape(map[k].unit)}</span>
+      </li>`).join('');
+  }
+  if (noIng.length > 0) {
+    html += `<li class="empty-warn">⚠️ ${noIng.map(escape).join('、')}（无食材清单，采购时手动看）</li>`;
+  }
+  ul.innerHTML = html;
+}
+
+function copyShoppingList() {
+  const ids = state.cart[currentCartTab] || [];
+  if (ids.length === 0) { toast('购物车为空', 'warn'); return; }
+  // 复用 renderShoppingList 计算（同食材去重累加）
+  const map = {};
+  let noIng = [];
+  ids.forEach(id => {
+    const d = state.dishes.find(x => x.id === id);
+    if (!d) return;
+    if (!d.ingredients || d.ingredients.length === 0) { noIng.push(d.name); return; }
+    d.ingredients.forEach(ing => {
+      const k = ing.name.trim();
+      if (!map[k]) map[k] = { qty: 0, unit: ing.unit || '' };
+      map[k].qty += (parseFloat(ing.qty) || 0);
+    });
+  });
+  let txt = `【${labelForDate(currentCartTab)} 采购清单 · ${fmtDate(currentCartTab)} ${weekdayName(currentCartTab)}】\n\n`;
+  Object.keys(map).sort().forEach(k => {
+    const q = map[k].qty % 1 === 0 ? map[k].qty : map[k].qty.toFixed(1);
+    txt += `· ${k} ${q}${map[k].unit}\n`;
+  });
+  if (noIng.length > 0) txt += `\n⚠️ ${noIng.join('、')} 食材清单未填\n`;
+  txt += `\n（来自早餐菜单库 · ${ids.length} 道菜）`;
+  navigator.clipboard.writeText(txt).then(
+    () => toast('已复制采购清单 📋'),
+    () => toast('复制失败，请手动选', 'err')
+  );
+}
+
+function confirmCart() {
+  const date = currentCartTab;
+  const ids = state.cart[date] || [];
+  if (ids.length === 0) { toast('购物车为空', 'warn'); return; }
+  if (!confirm(`确认把 ${ids.length} 道菜加入【${labelForDate(date)}】待做清单？`)) return;
+  ids.forEach(id => {
+    const d = state.dishes.find(x => x.id === id);
+    if (!d) return;
+    d.planned_for = d.planned_for || [];
+    if (!d.planned_for.includes(date)) d.planned_for.push(date);
+  });
+  delete state.cart[date];
+  const dates = Object.keys(state.cart).filter(d => state.cart[d].length > 0).sort();
+  currentCartTab = dates[0] || null;
+  saveState();
+  if (!currentCartTab) closeCart();
+  else { renderCartTabs(); renderCartList(); }
+  toast(`${ids.length} 道菜已加入【${labelForDate(date)}】待做 ✅`);
+}
+
+// === Today Plan Modal ===
+function openTodayPlan() {
+  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
+  if (todayDishes.length === 0) { toast('今天没待做的菜', 'warn'); return; }
+  document.getElementById('todayPlanTitle').textContent = `📋 今日待做 · ${today}`;
+  document.getElementById('todayPlanBody').innerHTML = todayDishes.map(d => {
+    const photoHtml = d.photo ? `<img src="${d.photo}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;">` : '<div style="width:48px;height:48px;border-radius:6px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;">🍳</div>';
+    return `
+    <div class="cart-item">
+      <div class="ci-img" style="width:48px;height:48px;">${photoHtml}</div>
+      <div style="flex:1">
+        <div class="ci-name">${escape(d.name)}</div>
+        <div class="ci-meta">⏱ ${d.time_min}min${avgR(d)?' · ★'+avgR(d).toFixed(1):''}</div>
+      </div>
+      <button class="btn btn-good" style="flex:0;padding:8px 12px;border-radius:8px;" onclick="doneTodayDish('${d.id}')">✅ 完成</button>
+    </div>`;
+  }).join('');
+  document.getElementById('todayPlanBg').classList.add('show');
+}
+function closeTodayPlan() { document.getElementById('todayPlanBg').classList.remove('show'); }
+document.getElementById('todayPlanBg').addEventListener('click', e => { if (e.target.id === 'todayPlanBg') closeTodayPlan(); });
+
+function doneTodayDish(id) {
+  const d = state.dishes.find(x => x.id === id);
+  if (!d) return;
+  d.made_count = (d.made_count || 0) + 1;
+  d.last_made = today;
+  d.planned_for = (d.planned_for || []).filter(x => x !== today);
+  saveState();
+  openTodayPlan(); // 重新渲染（如果是空的会自动关闭 toast 但不关 modal）
+  if (state.dishes.filter(x => (x.planned_for||[]).includes(today)).length === 0) {
+    closeTodayPlan();
+    toast('今日待做全部完成 🎉');
+  } else {
+    toast(`${d.name} 已完成 ✅`);
+  }
+}
+function doneAllToday() {
+  const todayDishes = state.dishes.filter(d => (d.planned_for || []).includes(today));
+  if (todayDishes.length === 0) return;
+  if (!confirm(`把 ${todayDishes.length} 道菜全部标记为已完成？`)) return;
+  todayDishes.forEach(d => {
+    d.made_count = (d.made_count || 0) + 1;
+    d.last_made = today;
+    d.planned_for = (d.planned_for || []).filter(x => x !== today);
+  });
+  saveState();
+  closeTodayPlan();
+  toast(`${todayDishes.length} 道菜全部完成 🎉`);
+}
+
+// === Detail Modal ===
 function openDetail(id) {
   const d = state.dishes.find(x => x.id === id);
   if (!d) return;
   const photoHtml = d.photo ? `<img src="${d.photo}" style="width:100%;border-radius:8px;margin-bottom:12px;">` : '';
+  const ingHtml = (d.ingredients && d.ingredients.length > 0) ? `
+    <div class="detail-recipe">
+      <h3>📦 食材清单</h3>
+      <pre>${d.ingredients.map(i => `· ${i.name} ${i.qty}${i.unit}`).join('\n')}</pre>
+    </div>
+  ` : '';
   const recipeHtml = d.recipe ? `
     <div class="detail-recipe">
       <h3>📖 做法</h3>
@@ -674,45 +1210,90 @@ function openDetail(id) {
   document.getElementById('detailTitle').textContent = d.name;
   document.getElementById('detailBody').innerHTML = `
     ${photoHtml}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
       <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">⏱ ${d.time_min}min</span>
       <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">× ${d.made_count}次</span>
       <span style="background:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;">${lastMadeLabel(d.last_made)}</span>
       ${avgR(d) ? `<span style="background:var(--accent);color:var(--bg);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;">★ ${avgR(d).toFixed(1)}</span>` : ''}
     </div>
-    <div style="font-size:13px;color:var(--text-dim);">
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">
       板栗 ${starText(d.ratings?.banli)} · 妞妞 ${starText(d.ratings?.niuniu)} · 老婆 ${starText(d.ratings?.wife)}
     </div>
+    ${ingHtml}
     ${recipeHtml}
     <div style="margin-top:14px;">
-      <button class="btn btn-ghost" onclick="closeDetail();openEditModal('${d.id}')">编辑 / 补评分 / 补做法</button>
+      <div class="adjust-row">
+        <button class="plus" onclick="detailAdjust('${d.id}',1)">+1</button>
+        <button class="plus" onclick="detailAdjust('${d.id}',3)">+3</button>
+        <button onclick="detailAdjust('${d.id}',-1)">-1</button>
+        <button onclick="detailAdjust('${d.id}',-3)">-3</button>
+        <button onclick="detailReset('${d.id}')">清零</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;">
+        <button class="btn btn-ghost" onclick="detailAddCart('${d.id}')" style="flex:1;">🛒 加入购物车</button>
+        <button class="btn btn-primary" onclick="openDatePickerDirect('${d.id}')" style="flex:1;">📅 选日期加入</button>
+      </div>
     </div>
   `;
   document.getElementById('detailBg').classList.add('show');
   document.getElementById('detailBg').dataset.id = id;
 }
 
-function starText(v) {
-  if (!v) return '未评';
-  return '★'.repeat(v) + '☆'.repeat(5-v);
-}
-
-function closeDetail() { document.getElementById('detailBg').classList.remove('show'); }
-
-document.getElementById('detailBg').addEventListener('click', e => {
-  if (e.target.id === 'detailBg') closeDetail();
-});
-
-function markMadeToday() {
-  const id = document.getElementById('detailBg').dataset.id;
+function detailAdjust(id, n) {
   const d = state.dishes.find(x => x.id === id);
   if (!d) return;
-  d.made_count = (d.made_count || 0) + 1;
-  d.last_made = today;
+  d.made_count = Math.max(0, (d.made_count || 0) + n);
+  if (n > 0) d.last_made = today;
   saveState();
-  closeDetail();
-  toast('已记一笔 ✅ +1');
+  openDetail(id); // 刷新
 }
+function detailReset(id) {
+  const d = state.dishes.find(x => x.id === id);
+  if (!d) return;
+  if (!confirm(`把 ${d.name} 计数清零？`)) return;
+  d.made_count = 0; d.last_made = null;
+  saveState();
+  openDetail(id);
+}
+function detailAddCart(id) {
+  // 直接加到明天
+  addToCart(id, daysFromNow(1));
+  closeDetail();
+}
+function openDatePickerDirect(id) {
+  // 用 modal 中心弹一个居中的日期选择器
+  closeDetail();
+  const popup = document.getElementById('datePickerPopup');
+  popup.innerHTML = `
+    <div style="font-size:12px;color:var(--text-dim);padding:4px 14px;">加入哪天的菜单？</div>
+  `;
+  [1, 2, 3].forEach(n => {
+    const date = daysFromNow(n);
+    const btn = document.createElement('button');
+    btn.innerHTML = `${labelForDays(n)} <small>${fmtDate(date)} ${weekdayName(date)}</small>`;
+    btn.onclick = () => { addToCart(id, date); popup.style.display = 'none'; };
+    popup.appendChild(btn);
+  });
+  popup.style.display = 'block';
+  popup.style.top = '40%';
+  popup.style.left = '50%';
+  popup.style.transform = 'translate(-50%, -50%)';
+  setTimeout(() => {
+    document.addEventListener('click', e => {
+      if (popup && !popup.contains(e.target)) { popup.style.display = 'none'; popup.style.transform = ''; }
+    }, { once: true });
+  }, 100);
+}
+
+function editFromDetail() {
+  const id = document.getElementById('detailBg').dataset.id;
+  closeDetail();
+  openEditModal(id);
+}
+
+function starText(v) { if (!v) return '未评'; return '★'.repeat(v) + '☆'.repeat(5-v); }
+function closeDetail() { document.getElementById('detailBg').classList.remove('show'); }
+document.getElementById('detailBg').addEventListener('click', e => { if (e.target.id === 'detailBg') closeDetail(); });
 
 // === Toast ===
 let toastTimer;
@@ -721,10 +1302,10 @@ function toast(msg, type) {
   t.textContent = msg;
   t.className = 'toast show ' + (type || '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// === Backup (Export/Import) ===
+// === Backup ===
 window.exportData = function() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -733,7 +1314,6 @@ window.exportData = function() {
   a.click();
   toast('已导出 JSON');
 };
-
 window.importData = function() {
   const input = document.createElement('input');
   input.type = 'file'; input.accept = '.json';
@@ -746,6 +1326,8 @@ window.importData = function() {
         if (data.version !== DATA_VERSION) { toast('版本不匹配', 'err'); return; }
         if (!confirm(`将覆盖现有 ${state.dishes.length} 道菜,导入 ${data.dishes.length} 道菜,继续？`)) return;
         state = data;
+        state.dishes.forEach(x => { x.ingredients = x.ingredients || []; x.planned_for = x.planned_for || []; });
+        if (!state.cart) state.cart = {};
         saveState();
         toast('已导入 ✅');
       } catch (err) { toast('解析失败', 'err'); }
@@ -756,103 +1338,6 @@ window.importData = function() {
 };
 
 render();
-
-// === Quick +N (卡片右下 +1 按钮) ===
-function quickPlus(id, ev) {
-  const d = state.dishes.find(x => x.id === id);
-  if (!d) return;
-  const t0 = lastPlusTap[id] || 0;
-  if (Date.now() - t0 < 400) {
-    // 双击：累计 +3
-    addCount(d, 3);
-    lastPlusTap[id] = 0;
-    toast(`${d.name} +3`);
-  } else {
-    addCount(d, 1);
-    lastPlusTap[id] = Date.now();
-  }
-  saveState();
-}
-
-function addCount(d, n) {
-  d.made_count = (d.made_count || 0) + n;
-  d.last_made = today;
-  render();
-}
-
-// 长按选更多（用 touch/click timer 简单实现）
-let longPressTimer = null;
-document.addEventListener('contextmenu', e => {
-  if (e.target.classList && e.target.classList.contains('card-plus')) e.preventDefault();
-});
-document.addEventListener('mousedown', e => {
-  if (e.target.classList && e.target.classList.contains('card-plus')) {
-    const id = e.target.getAttribute('onclick').match(/'([^']+)'/)[1];
-    longPressTimer = setTimeout(() => {
-      const d = state.dishes.find(x => x.id === id);
-      if (!d) return;
-      const v = prompt(`${d.name} 加几次？输入数字（默认1）`, '1');
-      const n = parseInt(v) || 1;
-      addCount(d, n);
-      toast(`${d.name} +${n}`);
-    }, 600);
-  }
-});
-document.addEventListener('mouseup', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
-
-// === 排行榜 Tab ===
-document.querySelectorAll('#rankTabs .tab').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('#rankTabs .tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    currentRankTab = t.dataset.rank;
-    renderRanking();
-  });
-});
-
-// === 照片上传（压缩到 800x800 / 0.7 质量） ===
-function onPhotoSelected(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { toast('请选图片', 'err'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      // 压缩：最长边 800
-      const max = 800;
-      let w = img.width, h = img.height;
-      if (w > h && w > max) { h = h * max / w; w = max; }
-      else if (h > max) { w = w * max / h; h = max; }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      currentPhoto = canvas.toDataURL('image/jpeg', 0.7);
-      showPhotoPreview(currentPhoto);
-      toast('照片已加载 ✅');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function showPhotoPreview(dataUrl) {
-  const preview = document.getElementById('photoPreview');
-  const text = document.getElementById('photoPreviewText');
-  if (dataUrl) {
-    preview.innerHTML = `<img src="${dataUrl}">`;
-  } else {
-    preview.innerHTML = '<span id="photoPreviewText">点击上传照片</span>';
-  }
-}
-
-function clearPhoto() {
-  currentPhoto = null;
-  showPhotoPreview(null);
-  document.getElementById('inpPhoto').value = '';
-}
 </script>
-
 </body>
 </html>
