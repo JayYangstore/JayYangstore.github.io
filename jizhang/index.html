@@ -1330,6 +1330,12 @@ function monthEntries(){
     .slice()
     .sort((a,b)=>new Date(a.ts).getTime()-new Date(b.ts).getTime());
 }
+function activeEntries(){
+  /* v14.4:全部未归档记录(loadEntries 返回的就是当前账本里所有剩余记录,
+     归档时已经从 STORE_KEY 删除)。按时间正序排,给"已花累计/支付方式汇总"用。 */
+  return loadEntries().slice()
+    .sort((a,b)=>new Date(a.ts).getTime()-new Date(b.ts).getTime());
+}
 /* v13.1:金额千分符格式化(汇总金额用,避免 12345.67 难读) */
 function fmtMoney(v, dec=2){
   return Number(v||0).toLocaleString('zh-CN',{minimumFractionDigits:dec,maximumFractionDigits:dec});
@@ -1348,8 +1354,8 @@ function getLatestBudget(){
 }
 function renderBudget(){
   const income = getLatestBudget();  /* v14.4:用最新一次工资,不再被 viewYM 影响 */
-  /* v14.4:已花 = 当前 viewYM 月份累计(视图层语义),不算跨月历史 */
-  const allEntries = monthEntries();
+  /* v14.4:已花 = 全部未归档记录累计(不再按 viewYM 切月重算),归档后才从新累加 */
+  const allEntries = activeEntries();
   const spent = allEntries.reduce((s,e)=>s+Number(e.amount||0),0);
   const remain = income - spent;
   budgetIncome.textContent = income ? '¥'+fmtMoney(income) : '未设置';
@@ -1406,7 +1412,7 @@ function renderSummary(){
   }
 }
 function renderPaySummary(){
-  const arr = monthEntries();
+  const arr = activeEntries();  /* v14.4:全部未归档记录的支付方式汇总 */
   if(!arr.length){$('paySummary').style.display='none';return}
   // 按支付方式汇总
   const map = {};
