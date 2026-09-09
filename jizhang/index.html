@@ -1334,8 +1334,21 @@ function monthEntries(){
 function fmtMoney(v, dec=2){
   return Number(v||0).toLocaleString('zh-CN',{minimumFractionDigits:dec,maximumFractionDigits:dec});
 }
+function getLatestBudget(){
+  /* v14.4:工资永远显示"最新一次设置的值",不再随 viewYM 切月变"未设置" */
+  try{
+    const b = JSON.parse(localStorage.getItem(BUDGET_KEY())) || {};
+    const keys = Object.keys(b).sort();  /* YYYY-MM 字典序 = 时间顺序 */
+    for(let i=keys.length-1;i>=0;i--){
+      const v = Number(b[keys[i]]);
+      if(v>0) return v;
+    }
+    return 0;
+  }catch(e){return 0}
+}
 function renderBudget(){
-  const income = getBudget(viewYM.y, viewYM.m);
+  const income = getLatestBudget();  /* v14.4:用最新一次工资,不再被 viewYM 影响 */
+  /* v14.4:已花 = 当前 viewYM 月份累计(视图层语义),不算跨月历史 */
   const allEntries = monthEntries();
   const spent = allEntries.reduce((s,e)=>s+Number(e.amount||0),0);
   const remain = income - spent;
@@ -1658,6 +1671,34 @@ function confirmArchive(){
   }
 
   $('archiveModal').classList.remove('open');
+  /* v14.4:归档时同步清掉被归档范围覆盖的月份工资。
+     规则:如果某自然月(YYYY-MM)的每一天都在归档范围内,才清那个月。
+     避免误清:例如归档 9-15 ~ 10-15 不清任何月份(跨月了);
+             归档 9-1 ~ 9-30 才清 9 月。 */
+  try{
+    const b = JSON.parse(localStorage.getItem(BUDGET_KEY())) || {};
+    const fromD = new Date(from+'T00:00:00');
+    const toD = new Date(to+'T00:00:00');
+    /* 遍历 from 月 ~ to 月 */
+    const ymList = [];
+    let cur = new Date(fromD.getFullYear(), fromD.getMonth(), 1);
+    const end = new Date(toD.getFullYear(), toD.getMonth(), 1);
+    while(cur <= end){
+      const y = cur.getFullYear();
+      const m = cur.getMonth()+1;
+      const monthStart = new Date(y, cur.getMonth(), 1);
+      const monthEnd = new Date(y, cur.getMonth()+1, 0);  /* 月末 */
+      if(monthStart >= fromD && monthEnd <= toD){
+        const k = `${y}-${String(m).padStart(2,'0')}`;
+        if(b[k] !== undefined){ delete b[k]; ymList.push(k); }
+      }
+      cur.setMonth(cur.getMonth()+1);
+    }
+    if(ymList.length){
+      localStorage.setItem(BUDGET_KEY(), JSON.stringify(b));
+      console.log('[jizhang] 归档同步清空工资月份:', ymList);
+    }
+  }catch(e){console.warn('[jizhang] 清工资失败', e)}
   toast(`✅ 已归档「${label}」 共 ${records.length} 笔`);
   renderAll();
   renderMonthlyTip();
