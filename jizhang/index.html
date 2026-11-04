@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0B0E13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>记账 v13</title>
+<title>记账 v14.5</title>
 <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%AE%B6%E5%BA%AD%E8%B4%A6%E6%9C%AC%22%2C%22short_name%22%3A%22%E8%AE%B0%E8%B4%A6%22%2C%22start_url%22%3A%22.%2F%22%2C%22scope%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230B0E13%22%2C%22theme_color%22%3A%22%230B0E13%22%2C%22orientation%22%3A%22portrait%22%7D">
 <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%230B0E13%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2270%22%20font-size%3D%2256%22%20text-anchor%3D%22middle%22%20fill%3D%22%23E8B660%22%20font-family%3D%22-apple-system%22%20font-weight%3D%22700%22%3E%C2%A5%3C%2Ftext%3E%3C%2Fsvg%3E">
 <style>
@@ -350,6 +350,56 @@
     background:rgba(232,182,96,.08);border-color:var(--accent)}
   .home-card:active .lb{color:var(--accent)}
 
+  /* ========== v14.5:咖啡基金(独立模块,不参与账本统计) ========== */
+  .coffee-card{background:var(--bg-2);border:1px solid var(--line);
+    border-radius:18px;padding:16px;margin-bottom:14px}
+  .coffee-card .cc-head{display:flex;justify-content:space-between;align-items:center}
+  .coffee-card .cc-title{background:transparent;border:none;color:var(--ink-2);
+    font-size:13px;cursor:pointer;font-family:inherit;padding:0;letter-spacing:.02em}
+  .coffee-card .cc-total{font-size:22px;font-weight:700;color:var(--good);
+    font-variant-numeric:tabular-nums}
+  .coffee-card .cc-meta{font-size:12px;color:var(--ink-3);margin-top:4px}
+  .coffee-card .cc-btn{width:100%;margin-top:12px;padding:15px;
+    background:var(--accent);border:none;border-radius:14px;color:#1A1305;
+    font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:all .15s}
+  .coffee-card .cc-btn:active{transform:scale(.99);background:var(--accent-2)}
+  .coffee-card .cc-btn.done{background:transparent;border:1px solid var(--good);
+    color:var(--good)}
+  /* v14.5:浅色主题对比度修正 —— titanium-slate 的 --accent 是近黑 #1D1D1F,
+     配深色字会隐形(对比度≈1.07)。
+     ①玻璃主题:按钮改白玻璃 pill + var(--ink)(同 .submit-btn 风格),见下方 glass 段
+     ②非玻璃兜底:titanium-slate 反白字;浅色主题的绿字改深绿 #0E7C3A 保证可读 */
+  [data-theme="titanium-slate"] .coffee-card .cc-btn{color:#FFFFFF}
+  [data-theme="titanium-slate"] .coffee-card .cc-btn:active{color:#FFFFFF}
+  [data-theme="titanium-slate"] .coffee-card .cc-btn.done{color:#0E7C3A;
+    border-color:#0E7C3A}
+  [data-theme="titanium-slate"] .coffee-card .cc-total{color:#0E7C3A}
+  [data-theme="titanium-slate"] .cf-cell.on{border-color:#0E7C3A}
+  .coffee-scroll{flex:1;overflow-y:auto;padding:0 14px 24px;
+    -webkit-overflow-scrolling:touch}
+  .cf-cal{margin-top:6px}
+  .cf-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+  .cf-dow-c{text-align:center;font-size:11px;color:var(--ink-3)}
+  .cf-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cf-cell{aspect-ratio:1/1;border-radius:10px;background:var(--bg-2);
+    border:1px solid var(--line);display:flex;align-items:center;
+    justify-content:center;font-size:13px;color:var(--ink-2);position:relative}
+  .cf-cell.empty{background:transparent;border:none}
+  .cf-cell.on{background:rgba(34,197,94,.16);border-color:var(--good);
+    color:var(--ink);font-weight:600}
+  .cf-cell.brk{border-color:var(--bad)}
+  .cf-cell.brk.on{background:rgba(248,113,113,.18);border-color:var(--bad)}
+  .cf-cell.today{outline:2px solid var(--accent);outline-offset:-2px}
+  .cf-cell.future{opacity:.32}
+  .cf-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;
+    border-radius:50%;background:var(--bad)}
+  .cf-note{font-size:11px;color:var(--ink-3);margin-top:10px;line-height:1.7}
+  .cf-actions{display:flex;gap:8px;margin-top:14px}
+  .cf-actions button{flex:1;padding:12px;background:var(--bg-2);
+    border:1px solid var(--line);border-radius:12px;color:var(--ink);
+    font-size:13px;cursor:pointer;font-family:inherit}
+
   @media (max-width:380px){
     .amount-input{font-size:54px}
     .amount-input::placeholder{font-size:40px}
@@ -378,6 +428,7 @@
   .glass-theme .budget,
   .glass-theme .amount-card,
   .glass-theme .pay-summary,
+  .glass-theme .coffee-card,
   .glass-theme .records-day-group{
     background:rgba(255,255,255,.45);
     -webkit-backdrop-filter:blur(32px) saturate(180%);
@@ -415,6 +466,27 @@
     color:var(--ink);
     box-shadow:0 6px 20px rgba(31,45,61,.12), inset 0 1px 0 rgba(255,255,255,.8);
   }
+  /* v14.5:咖啡基金打卡按钮同样走玻璃 pill —— 浅色主题下 --accent 是深色,
+     配深色字会看不清。已打卡态保持绿边白底 + 深绿字 */
+  .glass-theme .coffee-card .cc-btn{
+    background:linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.42));
+    -webkit-backdrop-filter:blur(22px);
+    backdrop-filter:blur(22px);
+    border:1px solid rgba(255,255,255,.75);
+    color:var(--ink);
+    box-shadow:0 6px 20px rgba(31,45,61,.12), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .glass-theme .coffee-card .cc-btn:active{
+    background:linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.30));
+    color:var(--ink);
+  }
+  .glass-theme .coffee-card .cc-btn.done{
+    background:rgba(255,255,255,.30);
+    border:1px solid #0E7C3A;
+    color:#0E7C3A;
+  }
+  .glass-theme .coffee-card .cc-total{color:#0E7C3A}
+  .glass-theme .cf-cell.on{border-color:#0E7C3A}
   .glass-theme .home-card{
     background:rgba(255,255,255,.42);
     -webkit-backdrop-filter:blur(20px);
@@ -571,6 +643,15 @@
     <span class="ic">📊</span>
     <span class="lb">月度账单</span>
   </button>
+</div>
+<!-- v14.5:咖啡基金打卡(独立存储,不进账本统计) -->
+<div class="coffee-card" id="coffeeCard">
+  <div class="cc-head">
+    <button class="cc-title" id="coffeeOpenTitle" type="button">☕ 咖啡基金 ›</button>
+    <span class="cc-total" id="coffeeTotal">¥0.00</span>
+  </div>
+  <div class="cc-meta" id="coffeeMeta">连续 0 天 · 本月 0 天 · 打卡 0 天</div>
+  <button class="cc-btn" id="coffeeCheckBtn" type="button">☕ 今天没喝咖啡 · 存 ¥9.90</button>
 </div>
 <small class="archived-tip" id="archivedTip" style="display:none"></small>
 
@@ -736,6 +817,11 @@
     <span class="l">编辑支付关键词</span>
     <button id="editPayKw">编辑</button>
   </div>
+  <div class="section-title">小工具</div>
+  <div class="row">
+    <span class="l">☕ 咖啡基金明细</span>
+    <button id="coffeeOpenBtn">打开</button>
+  </div>
   <div class="section-title">主题</div>
   <div class="row">
     <span class="l">配色方案 <b id="themeLabel" style="color:var(--accent);font-weight:normal"></b></span>
@@ -856,6 +942,73 @@
     <div class="actions">
       <button class="cancel" id="budgetCancel">取消</button>
       <button class="ok" id="budgetOk">保存</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ v14.5:咖啡基金 二级页 ============ -->
+<div class="view view-coffee" id="viewCoffee">
+  <div class="records-top">
+    <button class="back" id="coffeeBack" type="button">‹</button>
+    <div class="title">☕ 咖啡基金</div>
+    <div class="rmonth">
+      <button id="coffeePrevM" type="button">‹</button>
+      <span id="coffeeMonthLabel"></span>
+      <button id="coffeeNextM" type="button">›</button>
+    </div>
+  </div>
+  <div class="coffee-scroll">
+    <div class="summary-bar" style="margin-bottom:10px">
+      <div class="summary-cell">
+        <div class="l">累计已存</div>
+        <div class="v" id="cfTotal">¥0</div>
+      </div>
+      <div class="summary-cell">
+        <div class="l">打卡天数</div>
+        <div class="v" id="cfDays">0</div>
+      </div>
+      <div class="summary-cell">
+        <div class="l">连续</div>
+        <div class="v" id="cfStreak">0</div>
+      </div>
+    </div>
+    <div class="summary-bar" style="margin-bottom:10px">
+      <div class="summary-cell">
+        <div class="l">本月打卡</div>
+        <div class="v" id="cfMonthDays">0</div>
+      </div>
+      <div class="summary-cell">
+        <div class="l">本月破戒</div>
+        <div class="v" id="cfMonthBreak">0</div>
+      </div>
+      <div class="summary-cell">
+        <div class="l">每日金额</div>
+        <div class="v" id="cfUnit">¥9.90</div>
+      </div>
+    </div>
+    <div class="cf-cal" id="coffeeCal"></div>
+    <div class="cf-note" id="cfNote"></div>
+    <div class="cf-actions">
+      <button id="coffeeEditUnit" type="button">调整每日金额</button>
+      <button id="coffeeReset" type="button" style="color:var(--bad)">重置咖啡数据</button>
+    </div>
+  </div>
+</div>
+
+<!-- v14.5:调整每日金额 -->
+<div class="edit-modal" id="coffeeUnitModal">
+  <div class="edit-card">
+    <h3>☕ 每日打卡金额</h3>
+    <label>每天没喝咖啡,存多少钱(元)</label>
+    <input id="coffeeUnitInput" type="number" step="0.01" min="0.01" placeholder="例如 9.9">
+    <div class="note" style="font-size:12px;color:var(--ink-3);
+      line-height:1.6;margin-top:8px">
+      累计存款 = 打卡天数 × 每日金额。改完会重算所有打卡天。
+    </div>
+    <div class="actions">
+      <button class="cancel" id="coffeeUnitCancel">取消</button>
+      <button class="ok" id="coffeeUnitOk">保存</button>
     </div>
   </div>
 </div>
@@ -1436,7 +1589,7 @@ function renderPaySummary(){
   }).join('');
 }
 /* v13:首页不再渲染明细列表(已移到二级页),renderEntries 移除 */
-function renderAll(){renderBudget();renderSummary();renderPaySummary();updateAutoCat()}
+function renderAll(){renderBudget();renderSummary();renderPaySummary();updateAutoCat();renderCoffee()}
 
 function escapeHtml(s){return String(s||'').replace(/[<>&"']/g,
   c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c])}
@@ -1504,6 +1657,9 @@ submitEl.addEventListener('click',()=>{
   amountEl.value='';  /* v14.1:提交后清空金额框,避免残留 */
   _lastText = '';
   _lastAmount = '';
+  /* v14.5:提交后立即刷新总账/预算/支付汇总 —— v14.4 原生不刷新,首页「已花」会显示旧值。
+     放在清空输入框之后:renderAll() 内的 updateAutoCat() 会读 itemEl.value 重新解析金额 */
+  renderAll();
     toast(`${isInc?'💰 收入':'✓'} ${itemName} ${isInc?'+':''}¥${a.toFixed(2)} ${pay?'('+pay+')':''}`);
 });
 
@@ -2283,7 +2439,8 @@ $('exportAll').addEventListener('click',()=>{
 $('exportJson').addEventListener('click',()=>{
   const data={exported_at:new Date().toISOString(),cats:CATS,keywords:KEYWORDS,
     pays:PAYS,paykeywords:PAYKW,
-    entries:loadEntries()};
+    entries:loadEntries(),
+    coffee:loadCoffee()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const ver=nextExportVer();
@@ -2312,6 +2469,17 @@ $('fileInput').addEventListener('change',e=>{
       if(data.keywords){KEYWORDS=data.keywords;saveKw()}
       if(Array.isArray(data.pays)&&data.pays.length){PAYS=data.pays;savePays()}
       if(data.paykeywords){PAYKW=data.paykeywords;savePayKw()}
+      if(data.coffee){
+        const inc=loadCoffee();
+        const inDays=(Array.isArray(data.coffee.days))?data.coffee.days:[];
+        const inUnit=Number(data.coffee.unit);
+        if(inDays.length){
+          const clean=inDays.map(String).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
+          const merged=[...new Set([...inc.days,...clean])].sort();
+          const useUnit=(inc.days.length===0 && inUnit>0)?inUnit:inc.unit;
+          saveCoffee({days:merged, unit:useUnit});
+        }
+      }
       renderAll();
       const added = merged.length-old.length;
       toast(added>0 ? `✓ 导入（新增 ${added} 条）` : `✓ 已存在（${merged.length} 条未变）`);
@@ -2331,6 +2499,204 @@ function mergeEntries(oldArr,newArr){
     return e;
   })];
 }
+
+/* ========== v14.5:咖啡基金(独立存储 key,绝不碰账本数据) ========== */
+const COFFEE_DEFAULT_UNIT = 9.9;
+/* 破戒识别词表:只认咖啡品牌/品类,奶茶饮料不算 */
+const COFFEE_WORDS = ['咖啡','瑞幸','luckin','星巴克','拿铁','美式','卡布奇诺',
+  '摩卡','espresso','latte','冷萃','库迪','costa','manner','手冲','滴滤','生椰',
+  '馥芮白','咖啡豆','蓝山'];
+const COFFEE_KEY = () => K('coffee');
+let coffeeYM = (function(){ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })();
+let coffeeReturn = 'home';
+
+function loadCoffee(){
+  if(!CURRENT_USER) return {days:[], unit:COFFEE_DEFAULT_UNIT};
+  let o=null;
+  try{ o=JSON.parse(localStorage.getItem(COFFEE_KEY())||'null'); }catch(e){}
+  const raw=(o&&Array.isArray(o.days))?o.days:[];
+  const days=[...new Set(raw.map(String).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+  let unit=Number(o&&o.unit);
+  if(!(unit>0)) unit=COFFEE_DEFAULT_UNIT;
+  return {days, unit};
+}
+function saveCoffee(o){
+  if(!CURRENT_USER) return;
+  try{ localStorage.setItem(COFFEE_KEY(), JSON.stringify(o)); }catch(e){}
+}
+/* 破戒检测:扫当前账本 + 已归档月账单里的咖啡消费(只标记,绝不自动打卡) */
+function coffeePurchaseDates(){
+  const set=new Set();
+  const scan=arr=>{
+    (arr||[]).forEach(e=>{
+      if(!e) return;
+      if(Number(e.amount||0)<=0) return;            /* 收入(负数)不算 */
+      const t=String(e.item||'').toLowerCase();
+      if(!t) return;
+      if(!COFFEE_WORDS.some(w=>t.includes(w.toLowerCase()))) return;
+      const d=new Date(e.ts); if(isNaN(d.getTime())) return;
+      const p=n=>String(n).padStart(2,'0');
+      set.add(`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`);
+    });
+  };
+  try{ scan(loadEntries()); }catch(e){}
+  try{ loadMonthly().forEach(m=>scan(m.records)); }catch(e){}
+  return set;
+}
+function coffeeStats(o){
+  o=o||loadCoffee();
+  const set=new Set(o.days);
+  const key=d=>{ const p=n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
+  let cur=new Date();
+  if(!set.has(key(cur))) cur.setDate(cur.getDate()-1);   /* 今天没打则从昨天算,当天不断签 */
+  let streak=0;
+  while(set.has(key(cur))){ streak++; cur.setDate(cur.getDate()-1); }
+  const ym=todayStr().slice(0,7);
+  return {
+    total:o.unit*o.days.length,
+    count:o.days.length,
+    streak,
+    monthDays:o.days.filter(d=>d.slice(0,7)===ym).length,
+    unit:o.unit,
+    checkedToday:set.has(todayStr())
+  };
+}
+function coffeeToggleDay(dateKeyStr){
+  /* v14.5:未来日期不可打卡 —— UI 层(future 格子不绑 click)已拦截,这里再加一层函数级兜底 */
+  if(dateKeyStr > todayStr()){ toast('还没到这一天,不能提前打卡'); return; }
+  const o=loadCoffee();
+  const i=o.days.indexOf(dateKeyStr);
+  if(i>=0){
+    o.days.splice(i,1);
+    saveCoffee(o);
+    toast('已取消 '+dateKeyStr.slice(5)+' 的打卡');
+  }else{
+    o.days.push(dateKeyStr); o.days.sort();
+    saveCoffee(o);
+    toast(`☕ 打卡成功,存 ¥${fmtMoney(o.unit)}`);
+  }
+  renderCoffee();
+}
+function renderCoffeeCal(){
+  const box=$('coffeeCal'); if(!box) return;
+  const o=loadCoffee();
+  const set=new Set(o.days);
+  const brk=coffeePurchaseDates();
+  const y=coffeeYM.y, m=coffeeYM.m;
+  const mk=`${y}-${String(m+1).padStart(2,'0')}`;
+  $('coffeeMonthLabel').textContent=`${y}年${m+1}月`;
+  const first=new Date(y,m,1);
+  const lead=(first.getDay()+6)%7;                       /* 周一为一周起点 */
+  const dim=new Date(y,m+1,0).getDate();
+  const today=todayStr();
+  let html='<div class="cf-dow">'+
+    ['一','二','三','四','五','六','日'].map(d=>`<div class="cf-dow-c">${d}</div>`).join('')+
+    '</div><div class="cf-grid">';
+  for(let i=0;i<lead;i++) html+='<div class="cf-cell empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const key=`${mk}-${String(d).padStart(2,'0')}`;
+    const checked=set.has(key);
+    const broke=brk.has(key);
+    const future=key>today;
+    const cls=['cf-cell'];
+    if(checked) cls.push('on');
+    if(broke) cls.push('brk');
+    if(key===today) cls.push('today');
+    if(future) cls.push('future');
+    html+=`<div class="${cls.join(' ')}" data-d="${key}">${d}`+
+      (broke?'<span class="cf-dot"></span>':'')+'</div>';
+  }
+  html+='</div>';
+  box.innerHTML=html;
+  box.querySelectorAll('.cf-cell[data-d]').forEach(el=>{
+    if(el.classList.contains('future')) return;
+    el.addEventListener('click',()=>coffeeToggleDay(el.dataset.d));
+  });
+  const monthBreak=[...brk].filter(k=>k.slice(0,7)===mk).length;
+  if($('cfMonthBreak')) $('cfMonthBreak').textContent=monthBreak;
+  if($('cfMonthDays'))  $('cfMonthDays').textContent=o.days.filter(k=>k.slice(0,7)===mk).length;
+  if($('cfNote')) $('cfNote').innerHTML=
+    '🟢 已打卡(点一下可取消)&nbsp;·&nbsp;🔴 当天有咖啡消费记录(破戒,只提示不自动改)'+
+    '&nbsp;·&nbsp;未来日期不可点';
+}
+function renderCoffee(){
+  const card=$('coffeeCard'); if(!card) return;
+  const o=loadCoffee();
+  const s=coffeeStats(o);
+  $('coffeeTotal').textContent='¥'+fmtMoney(s.total);
+  $('coffeeMeta').textContent=`连续 ${s.streak} 天 · 本月 ${s.monthDays} 天 · 打卡 ${s.count} 天`;
+  const btn=$('coffeeCheckBtn');
+  if(s.checkedToday){
+    btn.textContent='✓ 今天已打卡 · 再点取消';
+    btn.classList.add('done');
+  }else{
+    btn.textContent=`☕ 今天没喝咖啡 · 存 ¥${fmtMoney(s.unit)}`;
+    btn.classList.remove('done');
+  }
+  if($('cfTotal'))  $('cfTotal').textContent='¥'+fmtMoney(s.total);
+  if($('cfDays'))   $('cfDays').textContent=s.count;
+  if($('cfStreak')) $('cfStreak').textContent=s.streak;
+  if($('cfUnit'))   $('cfUnit').textContent='¥'+fmtMoney(s.unit);
+  renderCoffeeCal();
+}
+function openCoffee(){
+  if(viewRecordsEl.classList.contains('active')) coffeeReturn='records';
+  else coffeeReturn='home';
+  renderCoffee();
+  viewHomeEl.classList.remove('active');
+  viewRecordsEl.classList.remove('active');
+  $('viewMonthly').classList.remove('active');
+  $('viewMonthlyDetail').classList.remove('active');
+  $('viewCoffee').classList.add('active');
+}
+function closeCoffee(){
+  $('viewCoffee').classList.remove('active');
+  if(coffeeReturn==='records') viewRecordsEl.classList.add('active');
+  else viewHomeEl.classList.add('active');
+  renderCoffee();
+}
+/* 事件绑定 */
+$('coffeeCheckBtn').addEventListener('click',()=>{
+  const today=todayStr();
+  const before=coffeeStats(loadCoffee()).streak;
+  coffeeToggleDay(today);
+  const o=loadCoffee();
+  const after=coffeeStats(o).streak;
+  if(after>before) toast(`☕ 连续 ${after} 天,今天存了 ¥${fmtMoney(o.unit)}`);
+});
+$('coffeeOpenTitle').addEventListener('click',openCoffee);
+$('coffeeOpenBtn').addEventListener('click',()=>{ closeSheet(); openCoffee(); });
+$('coffeeBack').addEventListener('click',closeCoffee);
+$('coffeePrevM').addEventListener('click',()=>{
+  let m=coffeeYM.m-1,y=coffeeYM.y; if(m<0){m=11;y--;} coffeeYM={y,m}; renderCoffeeCal();
+});
+$('coffeeNextM').addEventListener('click',()=>{
+  let m=coffeeYM.m+1,y=coffeeYM.y; if(m>11){m=0;y++;} coffeeYM={y,m}; renderCoffeeCal();
+});
+$('coffeeEditUnit').addEventListener('click',()=>{
+  $('coffeeUnitInput').value=String(loadCoffee().unit);
+  $('coffeeUnitModal').classList.add('open');
+});
+$('coffeeUnitCancel').addEventListener('click',()=>$('coffeeUnitModal').classList.remove('open'));
+$('coffeeUnitModal').addEventListener('click',e=>{
+  if(e.target===$('coffeeUnitModal')) $('coffeeUnitModal').classList.remove('open');
+});
+$('coffeeUnitOk').addEventListener('click',()=>{
+  const v=Number($('coffeeUnitInput').value);
+  if(!(v>0)){ toast('请输入大于 0 的金额'); return; }
+  const o=loadCoffee(); o.unit=v; saveCoffee(o);
+  $('coffeeUnitModal').classList.remove('open');
+  renderCoffee();
+  toast(`✓ 每日金额改为 ¥${fmtMoney(v)}`);
+});
+$('coffeeReset').addEventListener('click',()=>{
+  if(!confirm('确认清空咖啡基金的所有打卡记录？\n(账本数据不受影响)')) return;
+  saveCoffee({days:[], unit:COFFEE_DEFAULT_UNIT});
+  renderCoffee();
+  toast('已重置咖啡基金');
+});
+
 /* ========== 通用编辑弹层（分类/关键词/支付方式）========== */
 const editListModal = $('editListModal');
 const editListBody = $('editListBody');
@@ -2677,7 +3043,7 @@ loadTheme();
 <script>
 // === Service Worker 注册:浏览器缓存 HTML,弱网/二次访问秒开 ===
 if ('serviceWorker' in navigator) {
-  const swCode = `const CACHE='jizhang-v13';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('./')));self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r;}).catch(()=>caches.match(e.request).then(m=>m||caches.match('./'))))});`;
+  const swCode = `const CACHE='jizhang-v14-5';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('./')));self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r;}).catch(()=>caches.match(e.request).then(m=>m||caches.match('./'))))});`;
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});
 }
 
@@ -2871,7 +3237,7 @@ function renderAdminPanel(){
   $('adminBody').querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const uname = btn.dataset.del;
-      if(!confirm('确认删除账号 '+uname+' ?\n\n将同时清除该用户的:\n- 账本数据 (entries)\n- 分类/关键词/支付方式\n- lastKnownGood 快照\n- filter 筛选\n\n此操作不可恢复(除非有 JSON 备份)'))return;
+      if(!confirm('确认删除账号 '+uname+' ?\n\n将同时清除该用户的:\n- 账本数据 (entries)\n- 分类/关键词/支付方式\n- lastKnownGood 快照\n- filter 筛选\n- 咖啡基金打卡数据\n\n此操作不可恢复(除非有 JSON 备份)'))return;
       deleteUserAccount(uname);
     });
   });
@@ -2883,7 +3249,7 @@ function deleteUserAccount(username){
   delete users[username];
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
   
-  const bases = ['entries','cats','keywords','pays','paykeywords','budgets','lastKnownGood','filter','currentMonth'];
+  const bases = ['entries','cats','keywords','pays','paykeywords','budgets','lastKnownGood','filter','currentMonth','coffee'];
   for(const b of bases){
     localStorage.removeItem('family-ledger-v6-'+username+'-'+b);
   }
